@@ -193,7 +193,7 @@ export default function Home() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-[#1a365d] flex items-center gap-2">
-                  {filter === "all" ? "📊 כל התוכן" : filter}
+                  {isAllSelected ? "📊 כל התוכן" : `📊 ${[...activeFilters].join(", ")}`}
                   <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{filteredNews.length + filteredContent.length}</span>
                 </h2>
               </div>
