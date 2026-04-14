@@ -80,7 +80,7 @@ export default function Home() {
   const [filter, setFilter] = useState<string>("all");
 
   const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "חברתי"];
-  const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook");
+  const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const allNewsWithTourism = [...NEWS_ITEMS, ...(TOURISM_NEWS || [])];
   const filteredNews = filter === "all" ? allNewsWithTourism : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : NEWS_ITEMS.filter(i => i.category === filter);
   const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
