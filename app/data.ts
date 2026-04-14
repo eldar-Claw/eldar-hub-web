@@ -374,6 +374,8 @@ export const TRENDS: Trend[] = [
   },
 ];
 
+export const WINE_NEWS: NewsItem[] = [];
+
 export const TOURISM_NEWS: NewsItem[] = [
   { id: 101, type: "content", category: "תיירות", title: "נתב\"ג חוזר לשגרה — רשימת חברות התעופה שחזרו", summary: "נכון ל-13.4.26, חברות תעופה זרות חוזרות: אוזבקיסטן, אזימוט, אזרבייג'ן, Sky Express מיוון ועוד. British Airways דוחה עד מאי. American Airlines עדיין מחוץ לתמונה. Wizz Air ביטלה חזרה.", whyItMatters: "חזרת חברות אירופיות ומפרץ — חיזוק קישוריות, אך ארה\"ב עדיין מהססת.", implications: "מחירי טיסות לארה\"ב נותרים גבוהים, תלות גוברת בחברות מפרץ.", importance: 7, sourceUrl: "https://www.lametayel.co.il/articles/0x4pge", sourceName: "למטייל" },
   { id: 102, type: "content", category: "תיירות", title: "מריוט פותחת מלון דגל חדש בניקוסיה — סיטי ברייק קרוב לבית", summary: "רשת מריוט פותחת מלון דגל חדש בניקוסיה, קפריסין — שעתיים וחצי טיסה מישראל. חופשה חלומית במחיר שווה.", whyItMatters: "יעד קרוב ונגיש עם מותג בינלאומי — אידיאלי לסוף שבוע.", implications: "חיזוק קפריסין כיעד מועדף, תחרות מלונאית.", importance: 5, sourceUrl: "https://passportnews.co.il/%D7%9E%D7%9C%D7%95%D7%A0%D7%90%D7%95%D7%AA", sourceName: "Passport News" },
