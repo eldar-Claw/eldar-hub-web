@@ -233,17 +233,47 @@ export default function Home() {
           <div className="space-y-3">
             <h2 className="text-lg font-bold text-[#1a365d] mb-4">📡 ניהול מקורות</h2>
             {[
-              { name: "Ynet", cat: "חדשות", status: "active" },
-              { name: "הארץ", cat: "חדשות", status: "active" },
-              { name: "כלכליסט", cat: "כלכלה", status: "active" },
-              { name: "גלובס", cat: "כלכלה", status: "error" },
-              { name: "Geektime", cat: "טכנולוגיה", status: "active" },
-              { name: "אנשים ומחשבים", cat: "טכנולוגיה", status: "active" },
-              { name: "כאן חדשות", cat: "חדשות", status: "disabled" },
-              { name: "TechCrunch", cat: "טכנולוגיה", status: "active" },
-              { name: "Reuters", cat: "חדשות", status: "active" },
-              { name: "BBC News", cat: "חדשות", status: "active" },
-              { name: "וואלה", cat: "חדשות", status: "active" },
+              // חדשות ופוליטיקה
+              { name: "Times of Israel", cat: "חדשות", status: "active" },
+              { name: "Ynet / Knesset", cat: "חדשות", status: "active" },
+              { name: "הארץ / ערוץ 12", cat: "חדשות", status: "active" },
+              { name: "וואלה / TheMarker", cat: "חדשות", status: "active" },
+              { name: "Axios", cat: "חדשות", status: "active" },
+              { name: "NPR", cat: "חדשות", status: "active" },
+              { name: "Al Jazeera", cat: "חדשות", status: "active" },
+              { name: "CNN", cat: "חדשות", status: "active" },
+              { name: "The Guardian", cat: "חדשות", status: "active" },
+              { name: "Bloomberg", cat: "כלכלה", status: "active" },
+              { name: "Daily Mail", cat: "חדשות", status: "active" },
+              { name: "Epoch Israel", cat: "גיאופוליטיקה", status: "active" },
+              // כלכלה והייטק
+              { name: "Globes", cat: "כלכלה", status: "active" },
+              { name: "Forbes", cat: "כלכלה", status: "active" },
+              { name: "LinkedIn", cat: "מקצועי", status: "active" },
+              { name: "Facebook", cat: "רשת חברתית", status: "active" },
+              { name: "Reddit", cat: "רשת חברתית", status: "active" },
+              // טכנולוגיה וסייבר
+              { name: "Hacker News", cat: "טכנולוגיה", status: "active" },
+              { name: "Dark Reading", cat: "סייבר", status: "active" },
+              { name: "404 Media", cat: "סייבר", status: "active" },
+              { name: "NBC / CBS / TechNet", cat: "טכנולוגיה", status: "active" },
+              // בידור
+              { name: "Netflix", cat: "בידור", status: "active" },
+              { name: "Apple TV+ / Collider", cat: "בידור", status: "active" },
+              { name: "TimeOut", cat: "בידור", status: "active" },
+              { name: "Eventim / מבלים", cat: "בידור", status: "active" },
+              // אירועים
+              { name: "Lynx Events", cat: "אירועים", status: "active" },
+              { name: "Cyber Week", cat: "אירועים", status: "active" },
+              { name: "People & Computers", cat: "אירועים", status: "active" },
+              // תיירות
+              { name: "Passport News", cat: "תיירות", status: "active" },
+              { name: "למטייל", cat: "תיירות", status: "active" },
+              // יין
+              { name: "Decanter", cat: "יין", status: "active" },
+              { name: "Wine Advocate", cat: "יין", status: "active" },
+              { name: "Winecap / Liv-ex", cat: "יין", status: "active" },
+              { name: "Jancis Robinson", cat: "יין", status: "active" },
             ].map((s, i) => (
               <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3">
