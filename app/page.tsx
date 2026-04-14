@@ -12,6 +12,7 @@ const catColors: Record<string, string> = {
   "צבא וביטחון": "bg-red-600",
   "טכנולוגיה": "bg-green-600",
   "תיירות": "bg-amber-600",
+  "חברתי": "bg-sky-500",
 };
 
 const catBgColors: Record<string, string> = {
@@ -21,6 +22,7 @@ const catBgColors: Record<string, string> = {
   "צבא וביטחון": "border-red-200 bg-red-50",
   "טכנולוגיה": "border-green-200 bg-green-50",
   "תיירות": "border-amber-200 bg-amber-50",
+  "חברתי": "border-sky-200 bg-sky-50",
 };
 
 function importanceColor(n: number) {
@@ -77,10 +79,11 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "חברתי"];
+  const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook");
   const allNewsWithTourism = [...NEWS_ITEMS, ...(TOURISM_NEWS || [])];
-  const filteredNews = filter === "all" ? allNewsWithTourism : filter === "תיירות" ? (TOURISM_NEWS || []) : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+  const filteredNews = filter === "all" ? allNewsWithTourism : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : NEWS_ITEMS.filter(i => i.category === filter);
+  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
