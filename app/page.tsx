@@ -138,8 +138,17 @@ export default function Home() {
       {/* Header */}
       <header className="bg-gradient-to-l from-[#1a365d] to-[#2b6cb0] text-white">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-extrabold">🧠 Eldar Intelligence Hub</h1>
-          <p className="text-white/80 text-sm mt-1">דוח מודיעין יומי — חדשות ותוכן מקצועי</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-extrabold">🧠 Eldar Intelligence Hub</h1>
+              <p className="text-white/80 text-sm mt-1">דוח מודיעין יומי — חדשות ותוכן מקצועי</p>
+            </div>
+            <div className="text-left">
+              <p className="text-white/60 text-[10px]">עדכון אחרון</p>
+              <p className="text-white font-bold text-sm">{new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</p>
+              <p className="text-white/50 text-[10px]">עדכון הבא: {(() => { const now = new Date(); const times = [8.5,13,17,19,21]; const h = now.getHours() + now.getMinutes()/60; const next = times.find(t => t > h); if (!next) return "08:30"; const hr = Math.floor(next); const mn = (next - hr) * 60; return `${String(hr).padStart(2,"0")}:${String(mn).padStart(2,"0")}`; })()}</p>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -204,6 +213,29 @@ export default function Home() {
                 <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{filteredContent.length}</span>
               </h2>
               {filteredContent.map(item => <NewsCard key={item.id} item={item} />)}
+            </div>
+
+            {/* Tourism */}
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-[#92400e] mb-4 flex items-center gap-2">
+                ✈️ תיירות וחו&quot;ל
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { title: "דיל טיסות: רומא ב-$149 הלוך-חזור מנתב\"ג", desc: "Wizz Air השיקו מבצע טיסות לרומא במחירי שפל. זמין לתאריכים במאי-יוני.", price: "$149", url: "https://www.fly4free.co.il" },
+                  { title: "יוון 2026: האיים הכי שווים לקיץ הזה", desc: "מדריך מעודכן ליעדים המומלצים ביוון — סנטוריני, קרפטוס, נקסוס ועוד.", url: "https://www.lametayel.co.il" },
+                  { title: "מלונות בפראג: הנחה של 40% בהזמנה מוקדמת", desc: "רשת Marriott מציעה הנחות משמעותיות על הזמנות לקיץ בפראג ובודפשט.", price: "-40%", url: "https://www.marriott.com" },
+                ].map((item, i) => (
+                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
+                    className="block bg-amber-50 border border-amber-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-[14px] font-bold text-gray-900 flex-1">{item.title}</h3>
+                      {item.price && <span className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg mr-2 whitespace-nowrap">{item.price}</span>}
+                    </div>
+                    <p className="text-[13px] text-gray-600 mt-1">{item.desc}</p>
+                  </a>
+                ))}
+              </div>
             </div>
 
             {/* Trends */}
