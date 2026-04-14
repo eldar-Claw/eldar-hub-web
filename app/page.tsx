@@ -135,29 +135,6 @@ export default function Home() {
               <p className="text-[12px] text-gray-400 mt-3">{REPORT.date}</p>
             </div>
 
-            {/* Tourism */}
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
-              <h2 className="text-lg font-bold text-[#92400e] mb-3 flex items-center gap-2">
-                ✈️ תיירות וחו&quot;ל
-              </h2>
-              <div className="space-y-3">
-                {[
-                  { title: "דיל טיסות: רומא ב-$149 הלוך-חזור מנתב\"ג", desc: "Wizz Air השיקו מבצע טיסות לרומא במחירי שפל. זמין לתאריכים במאי-יוני.", price: "$149", url: "https://www.fly4free.co.il" },
-                  { title: "יוון 2026: האיים הכי שווים לקיץ הזה", desc: "מדריך מעודכן ליעדים המומלצים ביוון — סנטוריני, קרפטוס, נקסוס ועוד.", url: "https://www.lametayel.co.il" },
-                  { title: "מלונות בפראג: הנחה של 40% בהזמנה מוקדמת", desc: "רשת Marriott מציעה הנחות משמעותיות על הזמנות לקיץ בפראג ובודפשט.", price: "-40%", url: "https://www.marriott.com" },
-                ].map((item, i) => (
-                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
-                    className="block bg-white border border-amber-100 rounded-lg p-3 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-[14px] font-bold text-gray-900 flex-1">{item.title}</h3>
-                      {item.price && <span className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg mr-2 whitespace-nowrap">{item.price}</span>}
-                    </div>
-                    <p className="text-[13px] text-gray-600 mt-1">{item.desc}</p>
-                  </a>
-                ))}
-              </div>
-            </div>
-
             {/* Category Filter */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
               {categories.map(c => (
@@ -198,6 +175,29 @@ export default function Home() {
                     </div>
                     <p className="text-[13px] text-gray-600 leading-relaxed">{t.description}</p>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tourism */}
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <h2 className="text-lg font-bold text-[#92400e] mb-3 flex items-center gap-2">
+                ✈️ תיירות וחו&quot;ל
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { title: "דיל טיסות: רומא ב-$149 הלוך-חזור מנתב\"ג", desc: "Wizz Air השיקו מבצע טיסות לרומא במחירי שפל. זמין לתאריכים במאי-יוני.", price: "$149", url: "https://www.fly4free.co.il" },
+                  { title: "יוון 2026: האיים הכי שווים לקיץ הזה", desc: "מדריך מעודכן ליעדים המומלצים ביוון — סנטוריני, קרפטוס, נקסוס ועוד.", url: "https://www.lametayel.co.il" },
+                  { title: "מלונות בפראג: הנחה של 40% בהזמנה מוקדמת", desc: "רשת Marriott מציעה הנחות משמעותיות על הזמנות לקיץ בפראג ובודפשט.", price: "-40%", url: "https://www.marriott.com" },
+                ].map((item, i) => (
+                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
+                    className="block bg-white border border-amber-100 rounded-lg p-3 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-[14px] font-bold text-gray-900 flex-1">{item.title}</h3>
+                      {item.price && <span className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg mr-2 whitespace-nowrap">{item.price}</span>}
+                    </div>
+                    <p className="text-[13px] text-gray-600 mt-1">{item.desc}</p>
+                  </a>
                 ))}
               </div>
             </div>
