@@ -374,7 +374,11 @@ export const TRENDS: Trend[] = [
   },
 ];
 
-export const WINE_NEWS: NewsItem[] = [];
+export const WINE_NEWS: NewsItem[] = [
+  { id: 201, type: "content", category: "יין", title: "השקעות יין 2026: מה לחפש בשוק היין המשובח", summary: "ניצנים ירוקים בשוק היין המשובח מעוררים תשומת לב. המיקוד על Bordeaux First Growth, Burgundy Grand Cru ו-Barolo. Decanter מנתח הזדמנויות.", whyItMatters: "שוק היין המשובח הוא ערוץ השקעה אלטרנטיבי עם תשואות של 10-15% שנתי.", implications: "ביקוש גובר לווינטאג'ים 2015-2020, עליית מחירים צפויה ב-Burgundy.", importance: 7, sourceUrl: "https://www.decanter.com/learn/wine-investment/wine-investment-what-to-look-for-", sourceName: "Decanter", authorName: "Decanter Editorial" },
+  { id: 202, type: "content", category: "יין", title: "25 היינות היקרים בעולם 2026 — מ-DRC ועד Screaming Eagle", summary: "Romanée-Conti שולט בראש עם $25,000+ לבקבוק. דירוג Parker 100 מכפיל ערך מיידית. Pétrus, Lafite, Sassicaia ברשימה.", whyItMatters: "הבנת השוק מאפשרת זיהוי הזדמנויות לפני עליית מחירים.", implications: "DRC, Lafite, Pétrus — ביקוש עולמי גובר, במיוחד מאסיה.", importance: 8, sourceUrl: "https://www.vinovest.co/blog/25-most-expensive-wines-in-the-world-2026", sourceName: "Vinovest", authorName: "Vinovest Research" },
+  { id: 203, type: "content", category: "יין", title: "בקבוק DRC 1945 נמכר ב-$812,500 — שיא עולמי חדש", summary: "Romanée-Conti 1945 שבר שיא במכירה פומבית. שוק המכירות ליין חי ובועט עם ביקוש שיא ליינות נדירים.", whyItMatters: "אינדיקטור לבריאות שוק היין — ווינטאג'ים היסטוריים שוברים שיאים.", implications: "ווינטאג'ים ישנים של DRC ו-Bordeaux צפויים להמשיך לעלות.", importance: 7, sourceUrl: "https://www.forbes.com/sites/maryroeloffs/2026/03/30/bottle-of-1945-french-wine-", sourceName: "Forbes", authorName: "Mary Roeloffs" },
+];
 
 export const TOURISM_NEWS: NewsItem[] = [
   { id: 101, type: "content", category: "תיירות", title: "נתב\"ג חוזר לשגרה — רשימת חברות התעופה שחזרו", summary: "נכון ל-13.4.26, חברות תעופה זרות חוזרות: אוזבקיסטן, אזימוט, אזרבייג'ן, Sky Express מיוון ועוד. British Airways דוחה עד מאי. American Airlines עדיין מחוץ לתמונה. Wizz Air ביטלה חזרה.", whyItMatters: "חזרת חברות אירופיות ומפרץ — חיזוק קישוריות, אך ארה\"ב עדיין מהססת.", implications: "מחירי טיסות לארה\"ב נותרים גבוהים, תלות גוברת בחברות מפרץ.", importance: 7, sourceUrl: "https://www.lametayel.co.il/articles/0x4pge", sourceName: "למטייל" },
