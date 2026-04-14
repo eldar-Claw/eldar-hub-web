@@ -79,7 +79,7 @@ function NewsCard({ item }: { item: NewsItem }) {
 }
 
 // Tabs
-type Tab = "dashboard" | "history" | "sources" | "settings";
+type Tab = "dashboard" | "sources" | "settings";
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
@@ -153,7 +153,6 @@ export default function Home() {
         <div className="max-w-3xl mx-auto px-4 flex gap-1">
           {[
             { id: "dashboard" as Tab, label: "📊 דשבורד", },
-            { id: "history" as Tab, label: "📅 היסטוריה" },
             { id: "sources" as Tab, label: "📡 מקורות" },
             { id: "settings" as Tab, label: "⚙️ הגדרות" },
           ].map(t => (
@@ -228,24 +227,6 @@ export default function Home() {
               <p className="text-[14px] text-blue-900 leading-7">{REPORT.watchNext24h}</p>
             </div>
           </>
-        )}
-
-        {tab === "history" && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-bold text-[#1a365d] mb-4">📅 דוחות קודמים</h2>
-            {[0, 1, 2, 3, 4].map(i => {
-              const d = new Date(Date.now() - i * 86400000);
-              return (
-                <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-blue-700">📅 {d.toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long" })}</span>
-                    <span className="text-[11px] text-gray-400">15 פריטים</span>
-                  </div>
-                  <p className="text-[13px] text-gray-600 line-clamp-2">תקציר מנהלים ליום {d.toLocaleDateString("he-IL")} — התפתחויות בכלכלה, ביטחון וטכנולוגיה...</p>
-                </div>
-              );
-            })}
-          </div>
         )}
 
         {tab === "sources" && (
