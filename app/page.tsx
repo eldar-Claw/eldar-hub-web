@@ -12,7 +12,7 @@ const catColors: Record<string, string> = {
   "צבא וביטחון": "bg-red-600",
   "טכנולוגיה": "bg-green-600",
   "תיירות": "bg-amber-600",
-  "חברתי": "bg-sky-500",
+  "רשת חברתית": "bg-sky-500",
   "בידור": "bg-pink-500",
   "אירועים": "bg-indigo-500",
 };
@@ -24,7 +24,7 @@ const catBgColors: Record<string, string> = {
   "צבא וביטחון": "border-red-200 bg-red-50",
   "טכנולוגיה": "border-green-200 bg-green-50",
   "תיירות": "border-amber-200 bg-amber-50",
-  "חברתי": "border-sky-200 bg-sky-50",
+  "רשת חברתית": "border-sky-200 bg-sky-50",
   "בידור": "border-pink-200 bg-pink-50",
   "אירועים": "border-indigo-200 bg-indigo-50",
 };
@@ -83,14 +83,14 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "חברתי", "בידור"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "בידור"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
   const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
-  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
+  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
