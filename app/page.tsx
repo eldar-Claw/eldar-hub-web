@@ -165,25 +165,35 @@ export default function Home() {
               {filteredNews.map(item => <NewsCard key={item.id} item={item} />)}
             </div>
 
-            {/* Content */}
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-[#1a365d] mb-4 flex items-center gap-2">
-                📋 תוכן מקצועי
-                <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{filteredContent.length}</span>
-              </h2>
-              {filteredContent.map(item => <NewsCard key={item.id} item={item} />)}
-            </div>
+            {/* Content - only show items not already in filteredNews */}
+            {(() => {
+              const newsIds = new Set(filteredNews.map(i => i.id));
+              const uniqueContent = filteredContent.filter(i => !newsIds.has(i.id));
+              return uniqueContent.length > 0 ? (
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-[#1a365d] mb-4 flex items-center gap-2">
+                    📋 תוכן מקצועי
+                    <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{uniqueContent.length}</span>
+                  </h2>
+                  {uniqueContent.map(item => <NewsCard key={item.id} item={item} />)}
+                </div>
+              ) : null;
+            })()}
 
-            {/* Events Section */}
-            {eventsItems.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-indigo-700 mb-4 flex items-center gap-2">
-                📅 כנסים ואירועים קרובים
-                <span className="bg-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{eventsItems.length}</span>
-              </h2>
-              {eventsItems.map(item => <NewsCard key={item.id} item={item} />)}
-            </div>
-            )}
+            {/* Events Section - only show items not already above */}
+            {(() => {
+              const shownIds = new Set([...filteredNews.map(i => i.id), ...filteredContent.map(i => i.id)]);
+              const uniqueEvents = eventsItems.filter(i => !shownIds.has(i.id));
+              return uniqueEvents.length > 0 ? (
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-indigo-700 mb-4 flex items-center gap-2">
+                    📅 כנסים ואירועים קרובים
+                    <span className="bg-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{uniqueEvents.length}</span>
+                  </h2>
+                  {uniqueEvents.map(item => <NewsCard key={item.id} item={item} />)}
+                </div>
+              ) : null;
+            })()}
 
             {/* Trends */}
             <div className="mb-6">
