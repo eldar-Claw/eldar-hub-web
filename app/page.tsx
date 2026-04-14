@@ -87,7 +87,7 @@ export default function Home() {
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
-  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...entertainmentItems.filter(i => !NEWS_ITEMS.includes(i)), ...eventsItems.filter(i => !NEWS_ITEMS.includes(i))];
+  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
   const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
   const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
