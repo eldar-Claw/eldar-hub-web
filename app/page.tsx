@@ -83,14 +83,14 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
   const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
-  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "אירועים" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
+  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "אירועים" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,17 +166,6 @@ export default function Home() {
               </div>
               {[...filteredNews, ...filteredContent.filter(i => !filteredNews.find(n => n.id === i.id))].map(item => <NewsCard key={item.id} item={item} />)}
             </div>
-
-            {/* Entertainment Section */}
-            {entertainmentItems.length > 0 && (
-            <div className="mb-6 bg-pink-50 border border-pink-200 rounded-xl p-5">
-              <h2 className="text-lg font-bold text-pink-700 mb-4 flex items-center gap-2">
-                🎬 בידור
-                <span className="bg-pink-100 text-pink-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{entertainmentItems.length}</span>
-              </h2>
-              {entertainmentItems.map(item => <NewsCard key={`ent-${item.id}`} item={item} />)}
-            </div>
-            )}
 
             {/* Trends */}
             <div className="mb-6">
