@@ -89,7 +89,7 @@ export default function Home() {
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
-  const wineItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "יין");
+  const wineItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(WINE_NEWS || [])].filter(i => i.category === "יין");
   const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems, ...wineItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
   const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : filter === "בידור" ? entertainmentItems : filter === "יין" ? wineItems : NEWS_ITEMS.filter(i => i.category === filter);
