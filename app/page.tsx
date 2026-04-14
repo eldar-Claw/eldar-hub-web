@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS } from "./data";
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS } from "./data";
 import type { NewsItem } from "./data";
 
 // Category colors
