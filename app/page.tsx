@@ -15,6 +15,7 @@ const catColors: Record<string, string> = {
   "רשת חברתית": "bg-sky-500",
   "בידור": "bg-pink-500",
   "אירועים": "bg-indigo-500",
+  "יין": "bg-rose-700",
 };
 
 const catBgColors: Record<string, string> = {
@@ -27,6 +28,7 @@ const catBgColors: Record<string, string> = {
   "רשת חברתית": "border-sky-200 bg-sky-50",
   "בידור": "border-pink-200 bg-pink-50",
   "אירועים": "border-indigo-200 bg-indigo-50",
+  "יין": "border-rose-200 bg-rose-50",
 };
 
 function importanceColor(n: number) {
@@ -83,14 +85,15 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור", "יין"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
-  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems];
+  const wineItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "יין");
+  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems, ...wineItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
-  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "אירועים" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : filter === "בידור" ? entertainmentItems : filter === "יין" ? wineItems : NEWS_ITEMS.filter(i => i.category === filter);
+  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "אירועים" ? [] : filter === "בידור" ? [] : filter === "יין" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
