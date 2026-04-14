@@ -1,62 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-// Types
-interface NewsItem {
-  id: number;
-  type: "news" | "content";
-  category: string;
-  title: string;
-  summary: string;
-  whyItMatters: string;
-  implications: string;
-  importance: number;
-  sourceUrl: string;
-  sourceName: string;
-  authorName?: string;
-}
-
-interface Trend {
-  title: string;
-  description: string;
-  direction: "up" | "down" | "stable";
-}
-
-// Sample Data
-const REPORT = {
-  date: new Date().toLocaleDateString("he-IL", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
-  executiveSummary: "היום חלו התפתחויות משמעותיות בזירה הכלכלית והביטחונית. שוק ההון הישראלי רשם עליות חדות על רקע נתוני מאקרו חיוביים, בעוד שבזירה הביטחונית נמשכת פעילות צה\"ל בגזרת הצפון. בתחום הטכנולוגיה, חברות AI ישראליות דיווחו על גיוסי ענק. הממשלה אישרה רפורמת דיור חדשה ושביתת מורים צפויה מחר.",
-  conclusion: "המצב הכלכלי מציג סימנים חיוביים עם צמיחה בסקטור הטכנולוגיה. יש להמשיך לעקוב אחר ההתפתחויות הביטחוניות ופעולות בנק ישראל. רפורמת הדיור עשויה לשנות את שוק הנדל\"ן בפריפריה.",
-  watchNext24h: "פרסום נתוני אינפלציה חודשיים מחר ב-10:00 | ישיבת קבינט ביטחוני | פרסום דוחות רבעוניים של בנקים | כנס טכנולוגיה בתל אביב | הצבעה בכנסת על חוק הגיוס",
-};
-
-const NEWS_ITEMS: NewsItem[] = [
-  { id: 1, type: "news", category: "כלכלה", title: "הבורסה בתל אביב רשמה עלייה של 2.3% — השיא מתחילת השנה", summary: "מדד ת\"א 35 עלה ב-2.3% היום, מונע על ידי מניות הטכנולוגיה והבנקאות. העליות הגיעו על רקע נתוני תעסוקה חיוביים ותחזית צמיחה מעודכנת של בנק ישראל.", whyItMatters: "מדובר בשיא של המדד מתחילת 2026, מה שמצביע על אמון גובר של המשקיעים בכלכלה הישראלית.", implications: "עלייה בתשואות קרנות הפנסיה, חיזוק השקל, ואפשרות להנפקות חדשות.", importance: 9, sourceUrl: "https://www.globes.co.il", sourceName: "גלובס" },
-  { id: 2, type: "news", category: "צבא וביטחון", title: "צה\"ל הרחיב פעילות בגזרת הצפון — תרגיל רחב היקף", summary: "צה\"ל פתח בתרגיל צבאי רחב היקף בגזרת הצפון, הכולל כוחות יבשה, אוויר וים. התרגיל נמשך שלושה ימים ומדמה תרחישי לחימה מורכבים.", whyItMatters: "התרגיל נערך על רקע מתיחות מתמשכת בגבול הצפון ומעביר מסר הרתעתי.", implications: "חיזוק המוכנות המבצעית, הגברת ההרתעה, ואפשרות להסלמה מדודה.", importance: 8, sourceUrl: "https://www.ynet.co.il", sourceName: "Ynet" },
-  { id: 3, type: "news", category: "טכנולוגיה", title: "סטארטאפ ישראלי בתחום ה-AI גייס $200 מיליון בסבב C", summary: "חברת NovaMind AI הישראלית גייסה $200M בהובלת Sequoia Capital. החברה מפתחת מודלי שפה מתקדמים לשוק הארגוני ומתכננת הרחבה משמעותית.", whyItMatters: "הגיוס מציב את ישראל כשחקנית מרכזית בזירת ה-AI העולמית.", implications: "גיוס עובדים נרחב, חיזוק האקוסיסטם הישראלי, ותחרות מול חברות אמריקאיות.", importance: 8, sourceUrl: "https://www.geektime.co.il", sourceName: "Geektime" },
-  { id: 4, type: "news", category: "פוליטיקה", title: "הממשלה אישרה תוכנית רפורמה בדיור — 50,000 יחידות חדשות", summary: "הקבינט אישר תוכנית דיור חדשה הכוללת בניית 50,000 יחידות דיור בפריפריה וקיצור הליכי תכנון ל-18 חודשים.", whyItMatters: "מדובר בצעד משמעותי לטיפול במשבר הדיור שפוקד את ישראל כבר שנים.", implications: "ירידה צפויה במחירי הדירות בפריפריה, הגירה פנימית, ותנופת בנייה.", importance: 7, sourceUrl: "https://www.haaretz.co.il", sourceName: "הארץ" },
-  { id: 5, type: "news", category: "חברה", title: "שביתה ארצית במערכת החינוך — מחר לא ילמדו", summary: "ארגוני המורים הכריזו על שביתה ארצית ביום רביעי בעקבות מחלוקת על תנאי השכר. כ-1.5 מיליון תלמידים לא ילמדו.", whyItMatters: "השביתה משפיעה על מיליוני משפחות ומעלה לסדר היום את סוגיית תנאי המורים.", implications: "לחץ ציבורי על הממשלה, פגיעה כלכלית ביום עבודה, ואפשרות להסכם חדש.", importance: 7, sourceUrl: "https://www.kan.org.il", sourceName: "כאן חדשות" },
-  { id: 6, type: "news", category: "כלכלה", title: "בנק ישראל: האינפלציה ירדה ל-2.1% — הנמוכה מזה שנתיים", summary: "הלמ\"ס פרסמה שמדד המחירים לצרכן ירד ב-0.2% בחודש האחרון, והאינפלציה השנתית ירדה ל-2.1%.", whyItMatters: "ירידת האינפלציה פותחת פתח להורדת ריבית ומקלה על עלות המחיה.", implications: "הורדת ריבית צפויה, הוזלת משכנתאות, וחיזוק הצריכה הפרטית.", importance: 8, sourceUrl: "https://www.calcalist.co.il", sourceName: "כלכליסט" },
-  { id: 7, type: "news", category: "טכנולוגיה", title: "Intel תשקיע $10 מיליארד נוספים במפעל בישראל", summary: "Intel הודיעה על הרחבת ההשקעה במפעל קריית גת ב-$10B, מה שיהפוך אותו לאחד המתקדמים בעולם.", whyItMatters: "ההשקעה מחזקת את מעמד ישראל כמרכז ייצור שבבים עולמי.", implications: "אלפי משרות חדשות, חיזוק הפריפריה, והגברת ייצוא הטכנולוגיה.", importance: 9, sourceUrl: "https://www.pc.co.il", sourceName: "אנשים ומחשבים" },
-  { id: 8, type: "news", category: "צבא וביטחון", title: "מערכת הגנה אווירית חדשה עברה ניסוי מוצלח", summary: "משרד הביטחון ורפאל ביצעו ניסוי מוצלח במערכת \"מגן שמיים\" ליירוט טילים בליסטיים.", whyItMatters: "המערכת משלימה את כיפת הברזל וחץ ומספקת שכבת הגנה נוספת.", implications: "חיזוק ההגנה האסטרטגית, פוטנציאל ייצוא ביטחוני, ושיפור ההרתעה.", importance: 7, sourceUrl: "https://www.ynet.co.il", sourceName: "Ynet" },
-  { id: 9, type: "news", category: "פוליטיקה", title: "ישראל וסעודיה: סבב שיחות חדש בוושינגטון", summary: "נציגים ישראלים וסעודים נפגשו בוושינגטון לסבב שיחות נוסף בנושא נורמליזציה.", whyItMatters: "הסכם עם סעודיה יהיה פריצת דרך גיאופוליטית משמעותית.", implications: "שינוי מפת הבריתות האזורית, הזדמנויות כלכליות ותיירותיות.", importance: 8, sourceUrl: "https://www.haaretz.co.il", sourceName: "הארץ" },
-  { id: 10, type: "news", category: "חברה", title: "מחקר: 40% מהישראלים מתכננים לעבוד מהבית באופן קבוע", summary: "סקר חדש מצא ש-40% מהעובדים מעדיפים עבודה היברידית קבועה. המגמה חזקה בהייטק ובשירותים.", whyItMatters: "שינוי דפוסי העבודה משפיע על תחבורה, נדל\"ן מסחרי ואיכות חיים.", implications: "ירידת ביקוש למשרדים, שיפור תחבורתי, ושינוי מפת המגורים.", importance: 6, sourceUrl: "https://www.walla.co.il", sourceName: "וואלה" },
-];
-
-const CONTENT_ITEMS: NewsItem[] = [
-  { id: 11, type: "content", category: "טכנולוגיה", title: "מדריך: כך תבנו אסטרטגיית AI לארגון שלכם ב-2026", summary: "מאמר מקיף על הטמעת AI בארגונים, כולל ROI, כוח אדם ותשתיות.", whyItMatters: "AI הפך לכלי קריטי לתחרותיות עסקית.", implications: "הגברת פרודוקטיביות, חיסכון בעלויות.", importance: 7, sourceUrl: "https://www.geektime.co.il", sourceName: "Geektime", authorName: "יוסי כהן" },
-  { id: 12, type: "content", category: "כלכלה", title: "ניתוח: למה הפד ירד מהריבית ומה זה אומר לישראל", summary: "ניתוח מעמיק של השפעת הורדת הריבית האמריקאית על הכלכלה הישראלית.", whyItMatters: "מדיניות הפד משפיעה ישירות על שוקי ההון.", implications: "ירידת תשואות אג\"ח, חיזוק שוק המניות.", importance: 7, sourceUrl: "https://www.calcalist.co.il", sourceName: "כלכליסט", authorName: "דנה אשכנזי" },
-  { id: 13, type: "content", category: "טכנולוגיה", title: "סייבר 2026: האיומים החדשים שכל CISO צריך להכיר", summary: "סקירה של וקטורי תקיפה חדשים כולל AI-powered attacks ו-deepfake phishing.", whyItMatters: "איומי הסייבר מתפתחים מהר יותר מההגנות.", implications: "הגדלת תקציבי אבטחה, גיוס מומחים.", importance: 6, sourceUrl: "https://www.pc.co.il", sourceName: "אנשים ומחשבים", authorName: "מיכל לוי" },
-  { id: 14, type: "content", category: "כלכלה", title: "FinTech ישראלי: 5 חברות שישנו את עולם התשלומים", summary: "סקירה של חמש חברות פינטק ישראליות שמפתחות פתרונות תשלום חדשניים.", whyItMatters: "ישראל מובילה בתחום הפינטק.", implications: "השקעות חדשות, שינוי דפוסי תשלום.", importance: 5, sourceUrl: "https://www.globes.co.il", sourceName: "גלובס", authorName: "שרון אביב" },
-  { id: 15, type: "content", category: "פוליטיקה", title: "מבט מלמעלה: השפעת הבחירות באירופה על ישראל", summary: "ניתוח השלכות הבחירות באירופה על יחסי ישראל-אירופה.", whyItMatters: "אירופה שותפת סחר מרכזית של ישראל.", implications: "שינוי מדיניות סחר, השפעה על תהליכים מדיניים.", importance: 5, sourceUrl: "https://www.haaretz.co.il", sourceName: "הארץ", authorName: "עמית רז" },
-];
-
-const TRENDS: Trend[] = [
-  { title: "עליית מניות הטכנולוגיה", description: "מגמת עלייה חדה במניות AI וסייבר ישראליות, עם גיוסים של מעל $500M ברבעון", direction: "up" },
-  { title: "ירידה בריבית הצפויה", description: "בנק ישראל צפוי להוריד ריבית ברבעון הבא על רקע ירידת האינפלציה", direction: "down" },
-  { title: "יציבות גיאופוליטית שברירית", description: "המצב הביטחוני בצפון נשאר מורכב אך מבוקר, עם מגעים דיפלומטיים פעילים", direction: "stable" },
-];
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS } from "./data";
+import type { NewsItem } from "./data";
 
 // Category colors
 const catColors: Record<string, string> = {
@@ -155,7 +101,7 @@ export default function Home() {
       {/* Breaking Bar */}
       <div className="bg-red-600 text-white">
         <div className="max-w-3xl mx-auto px-4 py-2">
-          <span className="text-[13px] font-bold">⚡ מהיום: הבורסה בשיא שנתי | צה&quot;ל בתרגיל בצפון | Intel — $10B לישראל</span>
+          <span className="text-[13px] font-bold">⚡ מהיום: מלחמת איראן עלתה 35 מיליארד ₪ | Wiz — אקזיט $32B ל-Google | 108 הרחבות Chrome זדוניות | בן-גוריון נפתח — מחירים בשמיים</span>
         </div>
       </div>
 
@@ -187,6 +133,29 @@ export default function Home() {
               <p className="text-[12px] text-gray-400 mt-3">{REPORT.date}</p>
             </div>
 
+            {/* Tourism */}
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <h2 className="text-lg font-bold text-[#92400e] mb-3 flex items-center gap-2">
+                ✈️ תיירות וחו&quot;ל
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { title: "דיל טיסות: רומא ב-$149 הלוך-חזור מנתב\"ג", desc: "Wizz Air השיקו מבצע טיסות לרומא במחירי שפל. זמין לתאריכים במאי-יוני.", price: "$149", url: "https://www.fly4free.co.il" },
+                  { title: "יוון 2026: האיים הכי שווים לקיץ הזה", desc: "מדריך מעודכן ליעדים המומלצים ביוון — סנטוריני, קרפטוס, נקסוס ועוד.", url: "https://www.lametayel.co.il" },
+                  { title: "מלונות בפראג: הנחה של 40% בהזמנה מוקדמת", desc: "רשת Marriott מציעה הנחות משמעותיות על הזמנות לקיץ בפראג ובודפשט.", price: "-40%", url: "https://www.marriott.com" },
+                ].map((item, i) => (
+                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
+                    className="block bg-white border border-amber-100 rounded-lg p-3 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-[14px] font-bold text-gray-900 flex-1">{item.title}</h3>
+                      {item.price && <span className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg mr-2 whitespace-nowrap">{item.price}</span>}
+                    </div>
+                    <p className="text-[13px] text-gray-600 mt-1">{item.desc}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+
             {/* Category Filter */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
               {categories.map(c => (
@@ -213,29 +182,6 @@ export default function Home() {
                 <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{filteredContent.length}</span>
               </h2>
               {filteredContent.map(item => <NewsCard key={item.id} item={item} />)}
-            </div>
-
-            {/* Tourism */}
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-[#92400e] mb-4 flex items-center gap-2">
-                ✈️ תיירות וחו&quot;ל
-              </h2>
-              <div className="space-y-3">
-                {[
-                  { title: "דיל טיסות: רומא ב-$149 הלוך-חזור מנתב\"ג", desc: "Wizz Air השיקו מבצע טיסות לרומא במחירי שפל. זמין לתאריכים במאי-יוני.", price: "$149", url: "https://www.fly4free.co.il" },
-                  { title: "יוון 2026: האיים הכי שווים לקיץ הזה", desc: "מדריך מעודכן ליעדים המומלצים ביוון — סנטוריני, קרפטוס, נקסוס ועוד.", url: "https://www.lametayel.co.il" },
-                  { title: "מלונות בפראג: הנחה של 40% בהזמנה מוקדמת", desc: "רשת Marriott מציעה הנחות משמעותיות על הזמנות לקיץ בפראג ובודפשט.", price: "-40%", url: "https://www.marriott.com" },
-                ].map((item, i) => (
-                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
-                    className="block bg-amber-50 border border-amber-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-[14px] font-bold text-gray-900 flex-1">{item.title}</h3>
-                      {item.price && <span className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg mr-2 whitespace-nowrap">{item.price}</span>}
-                    </div>
-                    <p className="text-[13px] text-gray-600 mt-1">{item.desc}</p>
-                  </a>
-                ))}
-              </div>
             </div>
 
             {/* Trends */}
