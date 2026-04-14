@@ -83,7 +83,17 @@ type Tab = "dashboard" | "history" | "sources" | "settings";
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
-  const [filter, setFilter] = useState<string>("all");
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
+
+  const toggleFilter = (cat: string) => {
+    setActiveFilters(prev => {
+      const next = new Set(prev);
+      if (cat === "all") return new Set(); // "הכל" clears all filters
+      if (next.has(cat)) { next.delete(cat); } else { next.add(cat); }
+      return next;
+    });
+  };
+  const isAllSelected = activeFilters.size === 0;
 
   const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור", "יין"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
@@ -92,8 +102,25 @@ export default function Home() {
   const wineItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(WINE_NEWS || [])].filter(i => i.category === "יין");
   const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems, ...wineItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
-  const filteredNews = filter === "all" ? uniqueAll : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "רשת חברתית" ? socialItems : filter === "אירועים" ? eventsItems : filter === "בידור" ? entertainmentItems : filter === "יין" ? wineItems : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "רשת חברתית" ? [] : filter === "אירועים" ? [] : filter === "בידור" ? [] : filter === "יין" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+
+  const getItemsForCategory = (cat: string): NewsItem[] => {
+    if (cat === "תיירות") return TOURISM_NEWS || [];
+    if (cat === "רשת חברתית") return socialItems;
+    if (cat === "אירועים") return eventsItems;
+    if (cat === "בידור") return entertainmentItems;
+    if (cat === "יין") return wineItems;
+    return [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === cat);
+  };
+
+  const filteredItems = (() => {
+    if (isAllSelected) return uniqueAll;
+    const combined: NewsItem[] = [];
+    activeFilters.forEach(cat => { combined.push(...getItemsForCategory(cat)); });
+    return combined.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
+  })();
+  // Keep filteredNews and filteredContent for the rendering below
+  const filteredNews = filteredItems;
+  const filteredContent: NewsItem[] = [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -151,12 +178,15 @@ export default function Home() {
 
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {categories.map(c => (
-                <button key={c} onClick={() => setFilter(c)}
-                  className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filter === c ? "bg-[#1a365d] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"}`}>
-                  {c === "all" ? "הכל" : c}
-                </button>
-              ))}
+              {categories.map(c => {
+                const isActive = c === "all" ? isAllSelected : activeFilters.has(c);
+                return (
+                  <button key={c} onClick={() => toggleFilter(c)}
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${isActive ? "bg-[#1a365d] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"}`}>
+                    {c === "all" ? "הכל" : c}
+                  </button>
+                );
+              })}
             </div>
 
             {/* All Items - single flat list */}
