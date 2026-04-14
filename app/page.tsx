@@ -11,6 +11,7 @@ const catColors: Record<string, string> = {
   "חברה": "bg-yellow-600",
   "צבא וביטחון": "bg-red-600",
   "טכנולוגיה": "bg-green-600",
+  "תיירות": "bg-amber-600",
 };
 
 const catBgColors: Record<string, string> = {
@@ -19,6 +20,7 @@ const catBgColors: Record<string, string> = {
   "חברה": "border-yellow-200 bg-yellow-50",
   "צבא וביטחון": "border-red-200 bg-red-50",
   "טכנולוגיה": "border-green-200 bg-green-50",
+  "תיירות": "border-amber-200 bg-amber-50",
 };
 
 function importanceColor(n: number) {
@@ -75,7 +77,7 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות"];
   const filteredNews = filter === "all" ? NEWS_ITEMS : NEWS_ITEMS.filter(i => i.category === filter);
   const filteredContent = filter === "all" ? CONTENT_ITEMS : CONTENT_ITEMS.filter(i => i.category === filter);
 
