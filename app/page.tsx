@@ -78,9 +78,8 @@ export default function Home() {
   const [filter, setFilter] = useState<string>("all");
 
   const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות"];
-  const allNews = [...NEWS_ITEMS, ...(TOURISM_NEWS || [])];
-  const allContent = [...CONTENT_ITEMS, ...(TOURISM_NEWS || [])];
-  const filteredNews = filter === "all" ? NEWS_ITEMS : filter === "תיירות" ? (TOURISM_NEWS || []) : NEWS_ITEMS.filter(i => i.category === filter);
+  const allNewsWithTourism = [...NEWS_ITEMS, ...(TOURISM_NEWS || [])];
+  const filteredNews = filter === "all" ? allNewsWithTourism : filter === "תיירות" ? (TOURISM_NEWS || []) : NEWS_ITEMS.filter(i => i.category === filter);
   const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
