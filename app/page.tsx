@@ -181,32 +181,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Tourism - Luxury & Exotic */}
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
-              <h2 className="text-lg font-bold text-[#92400e] mb-1 flex items-center gap-2">
-                ✈️ תיירות וחו&quot;ל
-              </h2>
-              <p className="text-[12px] text-amber-700 mb-4">יעדים אקזוטיים · מלונות יוקרה · חוויות פרימיום | מקור: Passport News</p>
-              <div className="space-y-3">
-                {[
-                  { title: "26 היעדים שיעשו את ההבדל ב-2026", desc: "מפנינים שעדיין לא התגלו ועד יעדים שחוזרים לאופנה — מגזין היעדים השנתי של פספורט חושף את הנקודות החמות ביותר.", tag: "יעדים", url: "https://passportnews.co.il/article/202113" },
-                  { title: "Passport Luxury 2026: הפלגות אולטרה יוקרתיות וסוויטות על המים", desc: "המהדורה החדשה סוקרת את חברות הקרוזים המובילות — אוניות בוטיק אינטימיות, סוויטות עם מרפסת פרטית ויעדים בלעדיים.", tag: "יוקרה", url: "https://passportnews.co.il/article/203413" },
-                  { title: "19 מלונות חדשים בדרך לישראל — כל השמות החמים", desc: "גורדוניה זיכרון יעקב, מלונות בוטיק בתל אביב, ריזורטים בנגב — המפה המלונאית של ישראל משתנה ב-2026.", tag: "מלונות", url: "https://passportnews.co.il/article/200620" },
-                  { title: "היעד מספר 1 לשנת 2026 — אי הנופש האינדונזי הנחשק", desc: "Tripadvisor בחר את היעד המוביל לשנה. איים אקזוטיים, תרבות עשירה, ומחירים שעדיין נגישים.", tag: "אקזוטי", url: "https://passportnews.co.il/article/202565" },
-                ].map((item, i) => (
-                  <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
-                    className="block bg-white border border-amber-100 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="text-[14px] font-bold text-gray-900 flex-1 leading-snug">{item.title}</h3>
-                      <span className="bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2 whitespace-nowrap">{item.tag}</span>
-                    </div>
-                    <p className="text-[13px] text-gray-600 leading-relaxed">{item.desc}</p>
-                    <p className="text-[11px] text-amber-700 mt-2 font-semibold">קרא עוד ← Passport News</p>
-                  </a>
-                ))}
-              </div>
-            </div>
-
             {/* Conclusion */}
             <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-4">
               <h2 className="text-lg font-bold text-[#1a365d] mb-3">✅ סיכום ניהולי</h2>
