@@ -147,10 +147,10 @@ export default function Home() {
             </div>
 
             {/* Category Filter */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <div className="flex flex-wrap gap-2 mb-4">
               {categories.map(c => (
                 <button key={c} onClick={() => setFilter(c)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filter === c ? "bg-[#1a365d] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"}`}>
+                  className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filter === c ? "bg-[#1a365d] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"}`}>
                   {c === "all" ? "הכל" : c}
                 </button>
               ))}
