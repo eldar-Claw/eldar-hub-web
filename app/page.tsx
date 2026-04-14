@@ -83,13 +83,13 @@ export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [filter, setFilter] = useState<string>("all");
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "חברתי", "בידור", "אירועים"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "חברתי", "בידור"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
   const allNewsWithExtras = [...NEWS_ITEMS, ...(TOURISM_NEWS || [])];
-  const filteredNews = filter === "all" ? allNewsWithExtras : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : filter === "בידור" ? entertainmentItems : filter === "אירועים" ? eventsItems : NEWS_ITEMS.filter(i => i.category === filter);
-  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : filter === "בידור" ? [] : filter === "אירועים" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
+  const filteredNews = filter === "all" ? allNewsWithExtras : filter === "תיירות" ? (TOURISM_NEWS || []) : filter === "חברתי" ? socialItems : filter === "בידור" ? entertainmentItems : NEWS_ITEMS.filter(i => i.category === filter);
+  const filteredContent = filter === "all" ? CONTENT_ITEMS : filter === "תיירות" ? [] : filter === "חברתי" ? [] : filter === "בידור" ? [] : CONTENT_ITEMS.filter(i => i.category === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -172,6 +172,17 @@ export default function Home() {
               </h2>
               {filteredContent.map(item => <NewsCard key={item.id} item={item} />)}
             </div>
+
+            {/* Events Section */}
+            {eventsItems.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-indigo-700 mb-4 flex items-center gap-2">
+                📅 כנסים ואירועים קרובים
+                <span className="bg-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{eventsItems.length}</span>
+              </h2>
+              {eventsItems.map(item => <NewsCard key={item.id} item={item} />)}
+            </div>
+            )}
 
             {/* Trends */}
             <div className="mb-6">
