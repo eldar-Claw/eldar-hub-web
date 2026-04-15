@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, INDUSTRY_NEWS, MarketIndex, IndustryItem } from "./data";
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, INDUSTRY_NEWS, LAST_UPDATED, MarketIndex, IndustryItem } from "./data";
 import type { NewsItem } from "./data";
 
 // Category colors
@@ -134,8 +134,8 @@ export default function Home() {
             </div>
             <div className="text-left">
               <p className="text-white/60 text-[10px]">עדכון אחרון</p>
-              <p className="text-white font-bold text-sm">{new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}</p>
-              <p className="text-white/50 text-[10px]">עדכון הבא: {(() => { const now = new Date(); const times = [8.5,13,17,19,21]; const h = now.getHours() + now.getMinutes()/60; const next = times.find(t => t > h); if (!next) return "08:30"; const hr = Math.floor(next); const mn = (next - hr) * 60; return `${String(hr).padStart(2,"0")}:${String(mn).padStart(2,"0")}`; })()}</p>
+              <p className="text-white font-bold text-sm">🕐 {LAST_UPDATED}</p>
+              <p className="text-white/50 text-[10px]">עדכון אחרון</p>
             </div>
           </div>
         </div>
