@@ -48,6 +48,8 @@ export interface IndustryItem {
 
 export const NEWS_DATE = "יום רביעי, 15 באפריל 2026 — צהריים";
 
+export const LAST_UPDATED = "15 באפריל 2026, 11:45";
+
 export const REPORT = {
   date: NEWS_DATE,
   executiveSummary:
