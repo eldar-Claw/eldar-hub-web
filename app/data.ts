@@ -22,6 +22,30 @@ export interface Trend {
   direction: "up" | "down" | "stable";
 }
 
+export interface MarketIndex {
+  name: string;
+  value: string;
+  change: string;
+  direction: "up" | "down" | "stable";
+}
+
+export interface MarketData {
+  date: string;
+  indices: MarketIndex[];
+  currencies: MarketIndex[];
+  commodities: MarketIndex[];
+  israelHeadlines: string[];
+  wallStreetHeadlines: string[];
+  watchTomorrow: string;
+}
+
+export interface IndustryItem {
+  category: "עסקאות" | "סטארטאפים" | "מינויים" | "פיטורים" | "טרנדים";
+  title: string;
+  summary: string;
+  sourceUrl?: string;
+}
+
 export const NEWS_DATE = "יום רביעי, 15 באפריל 2026 — בוקר";
 
 export const REPORT = {
@@ -368,6 +392,10 @@ export const WINE_NEWS: NewsItem[] = [
     authorName: "Robert Parker / Jancis Robinson",
   },
 ];
+
+export const MARKET_DATA: MarketData | null = null;
+
+export const INDUSTRY_NEWS: IndustryItem[] = [];
 
 export const TOURISM_NEWS: NewsItem[] = [
   { id: 101, type: "content", category: "תיירות", title: "נתב\"ג חוזר לשגרה — רשימת חברות התעופה שחזרו", summary: "נכון ל-13.4.26, חברות תעופה זרות חוזרות: אוזבקיסטן, אזימוט, אזרבייג'ן, Sky Express מיוון ועוד. British Airways דוחה עד מאי. American Airlines עדיין מחוץ לתמונה. Wizz Air ביטלה חזרה.", whyItMatters: "חזרת חברות אירופיות ומפרץ — חיזוק קישוריות, אך ארה\"ב עדיין מהססת.", implications: "מחירי טיסות לארה\"ב נותרים גבוהים, תלות גוברת בחברות מפרץ.", importance: 7, sourceUrl: "https://www.lametayel.co.il/articles/0x4pge", sourceName: "למטייל" },

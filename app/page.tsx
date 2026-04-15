@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS } from "./data";
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, INDUSTRY_NEWS, MarketIndex, IndustryItem } from "./data";
 import type { NewsItem } from "./data";
 
 // Category colors
@@ -226,6 +226,104 @@ export default function Home() {
               <h2 className="text-lg font-bold text-[#1a365d] mb-3">👁️ מה לעקוב ב-24 שעות</h2>
               <p className="text-[14px] text-blue-900 leading-7">{REPORT.watchNext24h}</p>
             </div>
+
+            {/* Market Data */}
+            {MARKET_DATA && (
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-[#1a365d] mb-4 flex items-center gap-2">
+                  📊 שוק ההון
+                  <span className="text-[12px] font-normal text-gray-500">{MARKET_DATA.date}</span>
+                </h2>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  {/* Indices */}
+                  <div className="p-4 border-b border-gray-100">
+                    <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">מדדים</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {MARKET_DATA.indices.map((idx: MarketIndex, i: number) => (
+                        <div key={i} className="text-center">
+                          <p className="text-[11px] text-gray-500 mb-0.5">{idx.name}</p>
+                          <p className="font-bold text-[14px] text-gray-800">{idx.value}</p>
+                          <p className={`text-[12px] font-semibold ${idx.direction === "up" ? "text-green-600" : idx.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
+                            {idx.direction === "up" ? "▲" : idx.direction === "down" ? "▼" : "●"} {idx.change}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Currencies & Commodities */}
+                  <div className="p-4 border-b border-gray-100 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">מטבעות</p>
+                      {MARKET_DATA.currencies.map((c: MarketIndex, i: number) => (
+                        <div key={i} className="flex justify-between items-center mb-1">
+                          <span className="text-[12px] text-gray-600">{c.name}</span>
+                          <span className={`text-[12px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
+                            {c.value} {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">סחורות</p>
+                      {MARKET_DATA.commodities.map((c: MarketIndex, i: number) => (
+                        <div key={i} className="flex justify-between items-center mb-1">
+                          <span className="text-[12px] text-gray-600">{c.name}</span>
+                          <span className={`text-[12px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
+                            {c.value} {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Headlines */}
+                  <div className="p-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">ישראל</p>
+                      {MARKET_DATA.israelHeadlines.map((h: string, i: number) => (
+                        <p key={i} className="text-[12px] text-gray-700 mb-1.5 flex gap-1"><span className="text-blue-400 mt-0.5">•</span>{h}</p>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">וול סטריט</p>
+                      {MARKET_DATA.wallStreetHeadlines.map((h: string, i: number) => (
+                        <p key={i} className="text-[12px] text-gray-700 mb-1.5 flex gap-1"><span className="text-blue-400 mt-0.5">•</span>{h}</p>
+                      ))}
+                    </div>
+                  </div>
+                  {MARKET_DATA.watchTomorrow && (
+                    <div className="px-4 pb-4">
+                      <p className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wider">מה לעקוב מחר</p>
+                      <p className="text-[12px] text-gray-700">{MARKET_DATA.watchTomorrow}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Industry News */}
+            {INDUSTRY_NEWS && INDUSTRY_NEWS.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-[#1a365d] mb-4">🌍 מעקב תעשייה</h2>
+                <div className="space-y-3">
+                  {(["עסקאות", "סטארטאפים", "מינויים", "פיטורים", "טרנדים"] as const).map(cat => {
+                    const items = INDUSTRY_NEWS.filter((item: IndustryItem) => item.category === cat);
+                    if (items.length === 0) return null;
+                    const catEmoji: Record<string, string> = { עסקאות: "💼", סטארטאפים: "🚀", מינויים: "👤", פיטורים: "📉", טרנדים: "💡" };
+                    return (
+                      <div key={cat} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                        <p className="text-[12px] font-bold text-gray-500 mb-2">{catEmoji[cat]} {cat}</p>
+                        {items.map((item: IndustryItem, i: number) => (
+                          <div key={i} className="mb-2 last:mb-0">
+                            <p className="text-[13px] font-semibold text-gray-800">{item.title}</p>
+                            <p className="text-[12px] text-gray-500 leading-relaxed">{item.summary}</p>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
 
