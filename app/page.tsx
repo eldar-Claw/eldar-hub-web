@@ -144,7 +144,14 @@ export default function Home() {
       {/* Breaking Bar */}
       <div className="bg-red-600 text-white">
         <div className="max-w-3xl mx-auto px-4 py-2">
-          <span className="text-[13px] font-bold">⚡ {REPORT.executiveSummary}</span>
+          <span className="text-[13px] font-bold">
+            {REPORT.executiveSummary.split(";").map((item, i) => (
+              <span key={i}>
+                {i === 0 ? "⚡ " : " · "}
+                {item.trim()}
+              </span>
+            ))}
+          </span>
         </div>
       </div>
 
