@@ -145,8 +145,8 @@ export default function Home() {
       <div className="bg-red-600 text-white">
         <div className="max-w-3xl mx-auto px-4 py-2">
           <div className="flex flex-col gap-1">
-            {REPORT.executiveSummary.split(";").map((item, i) => (
-              <span key={i} className="text-[13px] font-bold">⚡ {item.trim()}</span>
+            {REPORT.breakingItems.map((item, i) => (
+              <span key={i} className="text-[13px] font-bold">⚡ {item}</span>
             ))}
           </div>
         </div>

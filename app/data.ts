@@ -52,6 +52,13 @@ export const LAST_UPDATED = "15 באפריל 2026, 11:45";
 
 export const REPORT = {
   date: NEWS_DATE,
+  breakingItems: [
+    "🏛️ פוליטיקה: ועדת כספים אישרה ₪98M לבתי ספר חרדיים תוך קיצוץ בחינוך הכללי",
+    "💰 כלכלה: ישראל מסירה מכסים על יבוא אמריקאי — צעד אסטרטגי מול טראמפ",
+    "💻 טכנולוגיה: Cyera מגיעה לשווי $9B; Above Security גייסה $50M ב-8 חודשים",
+    "📅 אירועים: AI Security Summit 13 מאי | Future of AI 24-25 מאי | Cyber Week 22-25 יוני",
+    "🍷 יין: Sassicaia 2023 מוצע ב-£1,250 | Bordeaux En Primeur 2025 מתקרב",
+  ],
   executiveSummary:
     "ישראל מסירה מכסים על יבוא אמריקאי — צעד כלכלי אסטרטגי מול מדיניות הטארים של טראמפ. ועדת כספים: ₪98M לבתי ספר חרדיים תוך קיצוץ בחינוך הכללי. Cyera מגיעה לשווי $9B; Above Security גייסה $50M ב-8 חודשים. AI כנשק סייבר: Microsoft מזהירה — 30 WordPress plugins נרכשו וזוהמו. שוק יין: Sassicaia 2023 מוצע ב-£1,250; Bordeaux En Primeur 2025 מתקרב. אירועים: AI Security Summit 13 מאי, Future of AI 24-25 מאי, Cyber Week 22-25 יוני. סדרות חובה: XO Kitty S3, Hijack S2, Shrinking S3.",
   conclusion:
