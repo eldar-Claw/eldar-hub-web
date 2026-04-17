@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""EIH v9 — Real data ONLY from scraping. GPT ONLY for analysis/insights. Fixes: executive summary fallback + PassportNews priority + Google News direct links."""
-import os, sys, json, base64, requests, time, re
+"""EIH v10 — Real data ONLY from scraping. GPT ONLY for analysis/insights. Fixes: whyItMatters + implications by id matching, HTML entities cleanup, smart fallbacks."""
+import os, sys, json, base64, requests, time, re, html as html_mod
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote_plus
@@ -328,42 +328,45 @@ def call_gpt(system, user, max_tokens=2000):
     return None
 
 def get_insights(news_items, market_headlines):
-    """GPT generates ONLY insights — whyItMatters, implications, trends, summary."""
-    headlines = "\n".join(f"- [{i['category']}] {i['title']}" for i in news_items[:15])
+    """GPT generates ONLY insights — whyItMatters, implications, trends, summary. Uses item id for matching."""
+    headlines = "\n".join(f"- id={i['id']}: [{i['category']}] {i['title']}" for i in news_items[:20])
     market_info = "\n".join(f"- {h}" for h in market_headlines[:6])
     
-    prompt = f"""Here are today's real headlines from Israel:
+    prompt = f"""Here are today's real headlines from Israel (each has an id number):
 
 {headlines}
 
 Market headlines:
 {market_info}
 
-Generate JSON with ONLY analysis and insights (NOT news data):
+Generate JSON with analysis and insights for EACH headline by its id:
 {{
   "insights": [
-    {{"title": "exact headline from above", "whyItMatters": "1 sentence in Hebrew", "implications": "1 sentence in Hebrew"}}
+    {{"id": 1, "whyItMatters": "one sentence in Hebrew explaining WHY this matters to an Israeli business executive", "implications": "one sentence in Hebrew about practical implications or what to expect next"}}
   ],
   "trends": [
     {{"title": "trend name in Hebrew", "description": "1 sentence in Hebrew", "direction": "up/down/stable"}}
   ],
-  "executiveSummary": "2 sentences summary in Hebrew",
+  "executiveSummary": "2-3 sentences summary in Hebrew connecting the main stories",
   "conclusion": "1 sentence in Hebrew",
   "watchNext24h": "1 sentence in Hebrew",
   "breakingItems": ["emoji headline1", "emoji headline2", "emoji headline3", "emoji headline4", "emoji headline5"]
 }}
 
-RULES:
-- insights: provide whyItMatters and implications for each headline
+CRITICAL RULES:
+- insights: MUST include an entry for EVERY id listed above
+- whyItMatters: explain WHY this headline matters — do NOT repeat the headline or summary
+- implications: what are the practical consequences or what should we watch for — do NOT repeat the headline
 - trends: exactly 3 macro trends
 - breakingItems: top 5 headlines with emoji prefix
-- ALL text in Hebrew
+- ALL text in Hebrew using simple language
 - NEVER use Hebrew abbreviations with double quotes (write תל אביב not ת"א)
+- NEVER copy the headline text into whyItMatters or implications
 """
     
     raw = call_gpt(
-        "You are a Hebrew intelligence analyst. Provide ONLY analysis and insights for given headlines. Never invent news.",
-        prompt, 2000
+        "You are a senior Hebrew intelligence analyst writing for Israeli business executives. For each headline, provide unique analysis explaining WHY it matters and its IMPLICATIONS. Never repeat the headline text. Never invent news.",
+        prompt, 3000
     )
     
     if not raw:
@@ -392,10 +395,19 @@ ABBREVS = {
 
 def sanitize(s):
     if not isinstance(s, str): return str(s) if s is not None else ""
+    # Decode HTML entities (&#8226; -> •, &nbsp; -> space, etc.)
+    s = html_mod.unescape(s)
+    # Replace bullet chars with dash for cleaner display
+    s = s.replace('•', ' - ').replace('\xa0', ' ')
     for a, r in ABBREVS.items():
         s = s.replace(a, r)
     # Remove any remaining Hebrew double-quote patterns
     s = re.sub(r'([\u0590-\u05FF])"([\u0590-\u05FF])', r'\1\2', s)
+    # Remove broken/truncated HTML entities (e.g. &#8226 without semicolon at end of truncated text)
+    s = re.sub(r'&#\d*$', '', s)
+    s = re.sub(r'&\w*$', '', s)
+    # Clean up multiple spaces
+    s = re.sub(r'\s{2,}', ' ', s).strip()
     return s
 
 def ts(s):
@@ -412,19 +424,45 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     date_str = now.strftime("%H:%M %d.%m.%Y")
     news_date = now.strftime("%d.%m.%Y")
     
-    # Apply insights to news items
+    # Apply insights to news items — match by id
     insight_map = {}
     if insights:
         for ins in insights.get("insights", []):
-            insight_map[ins.get("title", "")] = ins
+            ins_id = ins.get("id")
+            if ins_id is not None:
+                insight_map[int(ins_id)] = ins
+    
+    # Category-based fallback implications
+    CATEGORY_FALLBACKS = {
+        "כלכלה": "השפעה אפשרית על שוק ההון ועל הכלכלה הישראלית",
+        "פוליטיקה": "עשוי להשפיע על מדיניות הממשלה ועל הציבור",
+        "צבא וביטחון": "השלכות ביטחוניות שיש לעקוב אחריהן",
+        "ביטחון": "השלכות ביטחוניות שיש לעקוב אחריהן",
+        "חברה": "נושא חברתי שמשפיע על השיח הציבורי",
+        "טכנולוגיה": "השפעה על תעשיית ההייטק והחדשנות",
+        "רשת חברתית": "מגמה שכדאי לעקוב אחריה",
+        "אירועים": "הזדמנות לנטוורקינג ולמידה מקצועית",
+        "בידור": "משקף את מגמות התרבות והבידור",
+        "תיירות": "השפעה על ענף התיירות והמלונאות בישראל",
+        "יין": "מגמה שכדאי לעקוב לאוהבי יין ומשקיעים",
+    }
     
     for item in news_items + content_items + wine_items + tourism_items:
-        title = item.get("title", "")
-        ins = insight_map.get(title, {})
-        if not item.get("whyItMatters"):
-            item["whyItMatters"] = ins.get("whyItMatters", item.get("summary", ""))
-        if not item.get("implications"):
-            item["implications"] = ins.get("implications", "")
+        item_id = item.get("id", 0)
+        ins = insight_map.get(item_id, {})
+        cat = item.get("category", "")
+        
+        # whyItMatters: GPT insight > fallback (never copy summary)
+        if ins.get("whyItMatters"):
+            item["whyItMatters"] = ins["whyItMatters"]
+        elif not item.get("whyItMatters") or item.get("whyItMatters") == item.get("summary"):
+            item["whyItMatters"] = CATEGORY_FALLBACKS.get(cat, "כתבה שכדאי לעקוב אחריה")
+        
+        # implications: GPT insight > fallback (never empty)
+        if ins.get("implications"):
+            item["implications"] = ins["implications"]
+        elif not item.get("implications"):
+            item["implications"] = CATEGORY_FALLBACKS.get(cat, "ממשיכים לעקוב אחר התפתחויות")
     
     # Report
     report = insights or {}
@@ -505,7 +543,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     
     typescript = f"""// Eldar Intelligence Hub — Daily Data
 // Auto-updated: {date_str} IST
-// Generated by Sofia v9 — Real Data Only, GPT for Insights Only
+// Generated by Sofia v10 — Real Data Only, GPT for Insights Only
 export interface NewsItem {{
   id: number;
   type: "news" | "content";
@@ -619,7 +657,7 @@ def push_to_github(typescript, now):
     sha = resp.json().get("sha", "")
     
     payload = {
-        "message": f"🧠 EIH v9 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
+        "message": f"🧠 EIH v10 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
         "content": base64.b64encode(typescript.encode()).decode(),
         "branch": "main",
     }
@@ -643,8 +681,8 @@ def main():
     hdate = f"{day_map[now.isoweekday()]}, {now.day} {months[now.month]} {now.year}"
     tstr = now.strftime("%H:%M")
     
-    print(f"=== EIH v9 — {hdate} {tstr} ===")
-    print("=== REAL DATA ONLY — GPT for insights only ===\n")
+    print(f"=== EIH v10 — {hdate} {tstr} ===")
+    print("=== REAL DATA ONLY — GPT for insights only (v10) ===\n")
     
     # Step 1: Scrape all news
     print("[1] Scraping real news...")
@@ -712,7 +750,7 @@ def main():
     except:
         print("  Site: timeout")
     
-    print(f"\n=== DONE! v9 — Real Data ===")
+    print(f"\n=== DONE! v10 — Real Data ===")
 
 if __name__ == "__main__":
     main()
