@@ -533,7 +533,11 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     
     # Trends — with strong fallback
     trends = report.get("trends", [])
-    # Validate trends have real content
+    # Validate trends have real content and valid direction
+    VALID_DIRECTIONS = {"up", "down", "stable"}
+    for t in trends:
+        if t.get("direction") not in VALID_DIRECTIONS:
+            t["direction"] = "stable"
     valid_trends = [t for t in trends if t.get("description") and len(t.get("description", "")) > 5]
     if len(valid_trends) < 3:
         valid_trends = [
