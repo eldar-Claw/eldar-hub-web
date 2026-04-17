@@ -99,6 +99,7 @@ def call_openai(system_prompt, user_prompt, max_tokens=8000):
             ],
             "max_tokens": max_tokens,
             "temperature": 0.7,
+            "response_format": {"type": "json_object"},
         }
         for attempt in range(3):
             try:
