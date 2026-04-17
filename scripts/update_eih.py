@@ -233,14 +233,18 @@ Return JSON:
     {{"id":12,"type":"news","category":"טכנולוגיה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":7,"sourceUrl":"https://www.calcalist.co.il","sourceName":"כלכליסט"}},
     {{"id":13,"type":"news","category":"פוליטיקה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.ynet.co.il","sourceName":"ynet"}},
     {{"id":14,"type":"news","category":"צבא וביטחון","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":7,"sourceUrl":"https://www.walla.co.il","sourceName":"וואלה"}},
-    {{"id":15,"type":"news","category":"חברה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.ynet.co.il","sourceName":"ynet"}}
+    {{"id":15,"type":"news","category":"חברה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.ynet.co.il","sourceName":"ynet"}},
+    {{"id":16,"type":"news","category":"רשת חברתית","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.geektime.co.il","sourceName":"גיקטיים"}},
+    {{"id":17,"type":"news","category":"אירועים","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.timeout.co.il","sourceName":"טיים אאוט"}}
   ],
   "content_items": [
     {{"id":16,"type":"content","category":"כלכלה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.themarker.com","sourceName":"המרקר"}},
     {{"id":17,"type":"content","category":"טכנולוגיה","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":6,"sourceUrl":"https://www.geektime.co.il","sourceName":"גיקטיים"}},
     {{"id":18,"type":"content","category":"תיירות","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.globes.co.il","sourceName":"גלובס"}},
     {{"id":19,"type":"content","category":"יין","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.wine-searcher.com","sourceName":"Wine Searcher"}},
-    {{"id":20,"type":"content","category":"בידור","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.mako.co.il","sourceName":"mako"}}
+    {{"id":22,"type":"content","category":"בידור","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.mako.co.il","sourceName":"mako"}},
+    {{"id":23,"type":"content","category":"רשת חברתית","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.geektime.co.il","sourceName":"גיקטיים"}},
+    {{"id":24,"type":"content","category":"אירועים","title":"...","summary":"...","whyItMatters":"...","implications":"...","importance":5,"sourceUrl":"https://www.timeout.co.il","sourceName":"טיים אאוט"}}
   ],
   "trends": [
     {{"title":"...","description":"...","direction":"up"}},
@@ -370,12 +374,12 @@ def json_to_typescript(news_data, market_data):
     lines.append("")
     
     # NEWS_ITEMS
-    items_ts = ",\n".join(build_news_item_ts(i) for i in news_data.get("news_items", [])[:15])
+    items_ts = ",\n".join(build_news_item_ts(i) for i in news_data.get("news_items", [])[:17])
     lines.append(f"export const NEWS_ITEMS: NewsItem[] = [\n{items_ts}\n];")
     lines.append("")
     
     # CONTENT_ITEMS
-    content_ts = ",\n".join(build_news_item_ts(i) for i in news_data.get("content_items", [])[:5])
+    content_ts = ",\n".join(build_news_item_ts(i) for i in news_data.get("content_items", [])[:7])
     lines.append(f"export const CONTENT_ITEMS: NewsItem[] = [\n{content_ts}\n];")
     lines.append("")
     
