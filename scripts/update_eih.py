@@ -186,11 +186,11 @@ def scrape_all():
             ("site:epoch.org.il פסיכולוגיה OR מערכות יחסים OR התפתחות אישית", "he"),
             ("site:epoch.org.il פילוסופיה OR חברה OR היסטוריה OR רוחניות", "he"),
         ],
-        # טכנולוגיה — ONLY from Geektime/LetsAI + Epoch tech
+        # טכנולוגיה — ONLY from Geektime/LetsAI
         "טכנולוגיה": [
             ("site:geektime.co.il AI OR סטארטאפ OR טכנולוגיה", "he"),
-            ("site:epoch.org.il טכנולוגיה OR מדע OR חדשנות", "he"),
             ("LetsAI Israel AI artificial intelligence", "en"),
+            ("Israel tech AI startup 2026", "en"),
         ],
         # רשת חברתית — added Facebook
         "רשת חברתית": [
@@ -262,7 +262,7 @@ def select_news_items(data, max_per_cat=2, total_max=20):
         gnews_items = [i for i in cat_items if i not in rss_items]
         
         # Prioritize Epoch in all relevant categories (enriching content > plain news)
-        epoch_cats = ["חברה", "פוליטיקה", "טכנולוגיה", "בידור"]
+        epoch_cats = ["חברה", "פוליטיקה", "בידור"]
         if cat in epoch_cats:
             epoch_items = [i for i in cat_items if "epoch" in i.get("source_name", "").lower() or "epoch" in i.get("link", "").lower()]
             other_items = [i for i in cat_items if i not in epoch_items]
