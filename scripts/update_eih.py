@@ -59,7 +59,7 @@ def call_openai(system_prompt, user_prompt):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "max_tokens": 12000,
+            "max_tokens": 16000,
             "temperature": 0.7,
         }
         
@@ -109,37 +109,54 @@ def generate_data_ts():
     date_str = now.strftime("%Y-%m-%d %H:%M")
     hebrew_date = format_hebrew_date(now)
     time_str = now.strftime("%H:%M")
-    update_str = now.strftime("%d.%-m.%Y %H:%M")
+    update_str = now.strftime("%H:%M %d.%-m.%Y")
 
     system_prompt = """You are Sofia AI — Eldar Lev-Ran's intelligence agent. You generate the data.ts file for the Eldar Intelligence Hub (EIH) web application.
 
-Your job: Create a COMPLETE, VALID TypeScript file with FRESH, REAL news data.
+Your job: Create a COMPLETE, VALID TypeScript file with FRESH, REALISTIC news data in Hebrew.
 
 CRITICAL RULES:
 1. Output ONLY valid TypeScript code — no markdown, no code fences, no explanations
-2. Use REAL news from the last 24-48 hours. Use real source URLs from major Israeli and international news sites.
+2. Generate REALISTIC news based on current events and trends. Use real source URLs from major Israeli and international news sites.
 3. Hebrew content for titles, summaries, whyItMatters, implications
 4. Follow the EXACT interfaces and structure provided
-5. Include ALL sections: NEWS_ITEMS (10 items), CONTENT_ITEMS (8-10 items), TRENDS (3), WINE_NEWS (3), TOURISM_NEWS (5), MARKET_DATA (with real indices), INDUSTRY_NEWS (5+ items)
-6. REPORT section MUST have: date: NEWS_DATE, breakingItems (5 STRINGS), executiveSummary, conclusion, watchNext24h
-7. Each NewsItem needs: id, type, category, title, summary, whyItMatters, implications, importance (1-10), sourceUrl, sourceName
-8. importance scores: 10=critical breaking, 8-9=very important, 6-7=notable, 5=informational
-9. IDs: NEWS_ITEMS 1-10, CONTENT_ITEMS 11-20, TOURISM_NEWS 101-110, WINE_NEWS 201-210
-10. MARKET_DATA must include real index values for today or latest available
-11. All source URLs must be real, working URLs from major news sites
-12. Write in Hebrew — simple language, no jargon
+5. REPORT section MUST have: date: NEWS_DATE, breakingItems (5 STRINGS), executiveSummary, conclusion, watchNext24h
+6. Each NewsItem needs: id, type, category, title, summary, whyItMatters, implications, importance (1-10), sourceUrl, sourceName
+7. importance scores: 10=critical breaking, 8-9=very important, 6-7=notable, 5=informational
+8. MARKET_DATA must include realistic index values
+9. All source URLs must be real, working URLs from major news sites
+10. Write in Hebrew — simple language, no jargon
+
+CRITICAL — CATEGORY DISTRIBUTION FOR NEWS_ITEMS (15 items total):
+You MUST include AT LEAST one item from EACH of these 10 categories:
+- כלכלה (economy, business, finance)
+- פוליטיקה (politics, Knesset, government)
+- חברה (society, education, health)
+- צבא וביטחון (military, security, defense)
+- טכנולוגיה (technology, AI, cyber, startups)
+- תיירות (tourism, flights, hotels)
+- רשת חברתית (social media, influencers, viral)
+- אירועים (events, conferences, festivals)
+- בידור (entertainment, TV, movies, music, sports)
+- יין (wine, wineries, wine market)
+The remaining 5 items can be from any category. DO NOT put more than 3 items in any single category.
 
 CRITICAL STRING SAFETY RULES:
 - NEVER use unescaped double quotes inside double-quoted strings
-- Instead of writing the Hebrew abbreviation for Tel Aviv stock exchange (tav-quotemark-alef), write תל אביב
-- Instead of the Hebrew abbreviation for Nasdaq (nun-alef-samech-dalet-quotemark-kuf), write נאסדק
-- Instead of ד' or ג' (with ASCII apostrophe) write ד׳ or ג׳ (with Hebrew geresh character ׳)
-- Instead of מנכ"ל write מנכל or מנהל כללי
+- Instead of ת"א write תל אביב
+- Instead of נאסד"ק write נאסדק
+- Instead of מנכ"ל write מנהל כללי
 - Instead of ד"ר write דוקטור
+- Instead of יו"ר write יושב ראש
+- Instead of ארה"ב write ארהב or ארצות הברית
+- Instead of או"ם write האומות המאוחדות
+- Instead of בע"מ write בעמ
+- Instead of עו"ד write עורך דין
+- Instead of רו"ח write רואה חשבון
 - REPORT.breakingItems MUST be an array of STRINGS, NOT references to NEWS_ITEMS
 - Each breakingItem must be a string like: "💰 כלכלה: headline text here"
 - REPORT MUST include date: NEWS_DATE as first field
-- NEVER put a double quote character inside a double-quoted string — it will break the TypeScript parser
+- NEVER put a double quote character inside a double-quoted string
 """
 
     user_prompt = f"""Generate the complete data.ts file for Eldar Intelligence Hub.
@@ -148,17 +165,18 @@ Current date/time: {hebrew_date} — {time_str} IST
 LAST_UPDATED: "{update_str}"
 NEWS_DATE: "{hebrew_date} — {time_str}"
 
-Search topics to cover:
-- Israel economy, startups, trade, tariffs
-- Israel politics, Knesset, supreme court
-- AI, cybersecurity, tech startups
-- Israel security, military, ceasefire
-- Society, jobs, leadership
-- Fine wine market, Bordeaux, Burgundy, auctions
-- Tourism, flights, hotels
-- Industry deals, acquisitions, layoffs
-- Stock markets: S&P 500, Nasdaq, Dow Jones, TA-35
-- Entertainment: Netflix, Apple TV+, events
+Generate REALISTIC news for ALL 10 categories. Here are topic ideas for each:
+
+1. כלכלה: Israel GDP, startups funding, trade, tariffs, inflation, Bank of Israel
+2. פוליטיקה: Knesset laws, coalition, opposition, elections, supreme court
+3. חברה: education reform, healthcare, housing crisis, demographics, social issues
+4. צבא וביטחון: IDF operations, ceasefire, Iron Dome, military tech, border security
+5. טכנולוגיה: AI breakthroughs, Israeli tech companies, cybersecurity, chips, EVs
+6. תיירות: tourist numbers, new flight routes, hotel openings, travel trends
+7. רשת חברתית: viral trends, TikTok, Instagram, influencer news, social media regulation
+8. אירועים: tech conferences, cultural festivals, sports events, exhibitions
+9. בידור: Netflix series, Israeli TV shows, music festivals, sports results, cinema
+10. יין: wine auctions, Bordeaux/Burgundy market, Israeli wineries, wine ratings
 
 The file MUST start with:
 // Eldar Intelligence Hub — Daily Data
@@ -212,20 +230,57 @@ export interface IndustryItem {{
   sourceUrl?: string;
 }}
 
+export interface TourismNews {{
+  id: number;
+  title: string;
+  summary: string;
+  importance: number;
+  sourceUrl: string;
+  sourceName: string;
+}}
+
+export interface WineNews {{
+  id: number;
+  title: string;
+  summary: string;
+  importance: number;
+  sourceUrl: string;
+  sourceName: string;
+}}
+
+export interface IndustryNews {{
+  deals: IndustryItem[];
+  startups: IndustryItem[];
+  appointments: IndustryItem[];
+  layoffs: IndustryItem[];
+  trends: IndustryItem[];
+}}
+
+export interface Report {{
+  date: string;
+  breakingItems: string[];
+  executiveSummary: string;
+  conclusion: string;
+  watchNext24h: string;
+}}
+
 EXPORTS ORDER:
 1. export const NEWS_DATE = "...";
 2. export const LAST_UPDATED = "...";
-3. export const REPORT = {{ date: NEWS_DATE, breakingItems: [STRING, STRING, ...], executiveSummary: "...", conclusion: "...", watchNext24h: "..." }};
-4. export const NEWS_ITEMS: NewsItem[] = [...];
-5. export const CONTENT_ITEMS: NewsItem[] = [...];
-6. export const TRENDS: Trend[] = [...];
-7. export const WINE_NEWS: NewsItem[] = [...];
-8. export const TOURISM_NEWS: NewsItem[] = [...];
-9. export const MARKET_DATA: MarketData | null = {{ ... }};
-10. export const INDUSTRY_NEWS: IndustryItem[] = [...];
+3. export const REPORT: Report = {{ date: NEWS_DATE, breakingItems: [STRING, STRING, STRING, STRING, STRING], executiveSummary: "...", conclusion: "...", watchNext24h: "..." }};
+4. export const NEWS_ITEMS: NewsItem[] = [...]; // MUST have 15 items covering ALL 10 categories
+5. export const CONTENT_ITEMS: NewsItem[] = [...]; // 5 items
+6. export const TRENDS: Trend[] = [...]; // 3 items
+7. export const WINE_NEWS: WineNews[] = [...]; // 5 items
+8. export const TOURISM_NEWS: TourismNews[] = [...]; // 5 items
+9. export const MARKET_DATA: MarketData = {{ ... }};
+10. export const INDUSTRY_NEWS: IndustryNews = {{ deals: [...], startups: [...], appointments: [...], layoffs: [...], trends: [...] }};
+
+IDs: NEWS_ITEMS 1-15, CONTENT_ITEMS 16-20, TOURISM_NEWS 101-105, WINE_NEWS 201-205
 
 REMEMBER: breakingItems must be STRINGS like "💰 כלכלה: headline", NOT NEWS_ITEMS[0] references!
-REMEMBER: NEVER use double quotes inside double-quoted strings. No abbreviations with quotes.
+REMEMBER: NEVER use double quotes inside double-quoted strings. No Hebrew abbreviations with quotes.
+REMEMBER: NEWS_ITEMS MUST cover ALL 10 categories — כלכלה, פוליטיקה, חברה, צבא וביטחון, טכנולוגיה, תיירות, רשת חברתית, אירועים, בידור, יין.
 Output ONLY TypeScript code. Start with the comment line."""
 
     print("  🤖 Calling GPT to generate data.ts...")
@@ -262,8 +317,12 @@ def fix_typescript_issues(content):
         'רו"ח': 'רואה חשבון',
         'יו"ר': 'יושב ראש',
         'כנ"ל': 'כנל',
-        'ארה"ב': 'ארהב',
+        'ארה"ב': 'ארצות הברית',
         'או"ם': 'האומות המאוחדות',
+        'צה"ל': 'צהל',
+        'שב"כ': 'שבכ',
+        'מו"מ': 'משא ומתן',
+        'חו"ל': 'חול',
     }
     for abbr, replacement in abbreviations.items():
         content = content.replace(abbr, replacement)
@@ -277,7 +336,7 @@ def fix_typescript_issues(content):
     if 'export const NEWS_ITEMS' in content:
         before_news = content.split('export const NEWS_ITEMS')[0]
         if 'NEWS_ITEMS[' in before_news:
-            report_match = re.search(r'export const REPORT = \{.*?\};', content, re.DOTALL)
+            report_match = re.search(r'export const REPORT[^=]*= \{.*?\};', content, re.DOTALL)
             if report_match:
                 old_report = report_match.group(0)
                 if 'NEWS_ITEMS[' in old_report:
@@ -287,8 +346,10 @@ def fix_typescript_issues(content):
                         titles = re.findall(r'title:\s*"([^"]*)"', news_match.group(1))
                         categories = re.findall(r'category:\s*"([^"]*)"', news_match.group(1))
                         
-                        emojis = {"כלכלה": "💰", "פוליטיקה": "🏙️", "טכנולוגיה": "💻",
-                                  "ביטחון": "🛡️", "חברה": "👥", "תיירות": "✈️", "יין": "🍷"}
+                        emojis = {"כלכלה": "💰", "פוליטיקה": "🗳️", "טכנולוגיה": "💻",
+                                  "צבא וביטחון": "🛡️", "חברה": "👥", "תיירות": "✈️", 
+                                  "יין": "🍷", "בידור": "🎬", "אירועים": "📅",
+                                  "רשת חברתית": "📱", "סייבר": "🔒"}
                         
                         breaking = []
                         for idx_str in items[:5]:
@@ -304,7 +365,7 @@ def fix_typescript_issues(content):
                         concl = re.search(r'conclusion:\s*\n?\s*"((?:[^"\\]|\\.)*)"', old_report)
                         watch = re.search(r'watchNext24h:\s*\n?\s*"((?:[^"\\]|\\.)*)"', old_report)
                         
-                        new_report = f'''export const REPORT = {{
+                        new_report = f'''export const REPORT: Report = {{
   date: NEWS_DATE,
   breakingItems: [
     {breaking_str}
@@ -323,7 +384,11 @@ def fix_typescript_issues(content):
     if 'export const REPORT' in content and 'export const NEWS_ITEMS' in content:
         before_news = content.split('export const NEWS_ITEMS')[0]
         if 'date: NEWS_DATE' not in before_news:
-            content = content.replace('export const REPORT = {', 'export const REPORT = {\n  date: NEWS_DATE,')
+            content = re.sub(
+                r'export const REPORT[^=]*= \{',
+                'export const REPORT: Report = {\n  date: NEWS_DATE,',
+                content, count=1
+            )
             print("    ✅ Added date: NEWS_DATE to REPORT")
     
     # 5. Fix unbalanced quotes line by line
@@ -356,8 +421,7 @@ def fix_typescript_issues(content):
                     stripped = stripped[:mid] + '\\"' + stripped[mid+1:]
                     lines[i] = line[:len(line)-len(line.strip())] + stripped
                     print(f"    ✅ Fixed by escaping middle quote")
-            elif count == 5:
-                # Multiple internal quotes — try to escape all internal ones
+            elif count >= 5:
                 positions = []
                 j = 0
                 while j < len(stripped):
@@ -367,7 +431,6 @@ def fix_typescript_issues(content):
                     if stripped[j] == '"':
                         positions.append(j)
                     j += 1
-                # Escape all except first and last
                 if len(positions) >= 3:
                     for pos in reversed(positions[1:-1]):
                         stripped = stripped[:pos] + '\\' + stripped[pos:]
@@ -379,7 +442,7 @@ def fix_typescript_issues(content):
 
 
 def validate_data_ts(content):
-    """Basic validation of generated data.ts content."""
+    """Validate generated data.ts content."""
     checks = {
         "interfaces": "export interface NewsItem" in content,
         "NEWS_DATE": "export const NEWS_DATE" in content,
@@ -396,6 +459,35 @@ def validate_data_ts(content):
         "date_NEWS_DATE": "date: NEWS_DATE" in content,
     }
     
+    # Check category coverage in NEWS_ITEMS
+    required_categories = ["כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", 
+                          "תיירות", "רשת חברתית", "אירועים", "בידור", "יין"]
+    
+    news_section = ""
+    if "export const NEWS_ITEMS" in content:
+        parts = content.split("export const NEWS_ITEMS")
+        if len(parts) > 1:
+            # Get until next export const
+            rest = parts[1]
+            end_match = re.search(r'export const (?!NEWS_ITEMS)', rest)
+            if end_match:
+                news_section = rest[:end_match.start()]
+            else:
+                news_section = rest
+    
+    found_categories = set()
+    for cat in required_categories:
+        if f'category: "{cat}"' in news_section:
+            found_categories.add(cat)
+    
+    missing_cats = set(required_categories) - found_categories
+    if missing_cats:
+        print(f"  ⚠️ Missing categories in NEWS_ITEMS: {', '.join(missing_cats)}")
+        checks["all_categories"] = False
+    else:
+        checks["all_categories"] = True
+        print(f"  ✅ All 10 categories present in NEWS_ITEMS")
+    
     passed = sum(1 for v in checks.values() if v)
     total = len(checks)
     
@@ -404,6 +496,7 @@ def validate_data_ts(content):
         status = "✅" if ok else "❌"
         print(f"    {status} {name}")
     
+    # Allow missing categories but warn — GPT might use slightly different names
     return passed >= 11
 
 
@@ -495,7 +588,6 @@ def trigger_vercel_deploy():
 
 def trigger_vercel_deploy_hook():
     """Fallback: use Vercel deploy hook if API deploy fails."""
-    # We'll create a deploy hook via API first
     headers = {
         "Authorization": f"Bearer {VERCEL_TOKEN}",
         "Content-Type": "application/json",
@@ -538,7 +630,6 @@ def trigger_vercel_deploy_hook():
 
 def verify_deployment():
     """Check if the site is accessible."""
-    import time
     print("  ⏳ Waiting 30s for deployment to complete...")
     time.sleep(30)
     
