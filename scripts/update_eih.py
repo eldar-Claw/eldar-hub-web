@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EIH v8 — Real data ONLY from scraping. GPT ONLY for analysis/insights."""
+"""EIH v9 — Real data ONLY from scraping. GPT ONLY for analysis/insights. Fixes: executive summary fallback + PassportNews priority + Google News direct links."""
 import os, sys, json, base64, requests, time, re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
@@ -23,7 +23,7 @@ UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 # ============================================================
 
 def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
-    """Fetch real headlines from Google News RSS with search URLs."""
+    """Fetch real headlines from Google News RSS with Google News redirect links."""
     items = []
     try:
         url = f"https://news.google.com/rss/search?q={quote_plus(q)}&hl={hl}&gl={gl}&ceid={ceid}"
@@ -33,13 +33,16 @@ def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
             title = item.findtext("title", "").strip()
             source_el = item.find("source")
             source_name = source_el.text if source_el is not None else ""
-            # Create Google search URL that leads to the actual article
-            search_url = f"https://www.google.com/search?q={quote_plus(title)}"
+            # Use Google News redirect link (redirects to actual article in browser)
+            gnews_link = item.findtext("link", "").strip()
+            # Fallback: Google search URL if no link
+            if not gnews_link:
+                gnews_link = f"https://www.google.com/search?q={quote_plus(title)}"
             pub_date = item.findtext("pubDate", "")
             desc = re.sub(r'<[^>]+>', '', item.findtext("description", ""))[:200]
             if title:
                 items.append({
-                    "title": title, "link": search_url, "source_name": source_name,
+                    "title": title, "link": gnews_link, "source_name": source_name,
                     "description": desc, "pub_date": pub_date
                 })
     except Exception as e:
@@ -166,8 +169,8 @@ def scrape_all():
         "בידור": [("Netflix new series 2026", "en"), ("Apple TV new shows 2026", "en"), ("הופעות תל אביב תיאטרון כנסים", "he")],
         # יין
         "יין": [("Wine Spectator review 2026", "en"), ("wine market Liv-ex investment Bordeaux", "en"), ("Decanter Bordeaux Burgundy Barolo", "en"), ("DRC Lafite Sassicaia Krug Margaux wine", "en")],
-        # תיירות — passportnews + כללי
-        "תיירות": [("site:passportnews.co.il", "he"), ("תיירות ישראל מלונות יוקרה", "he"), ("Israel tourism travel 2026", "en")],
+        # תיירות — passportnews (ייעודי) + כללי
+        "תיירות": [("site:passportnews.co.il תיירות OR מלונות OR תעופה OR טיסות", "he"), ("תיירות ישראל מלונות יוקרה", "he"), ("Israel tourism travel 2026", "en")],
         # שוק הון
         "שוק הון": [("stock market today S&P 500 NASDAQ", "en"), ("בורסה תל אביב מדדים היום", "he")],
         # תעשייה
@@ -203,9 +206,9 @@ def select_news_items(data, max_per_cat=2, total_max=20):
     
     for cat in news_cats:
         cat_items = data.get(cat, [])
-        # Prefer items with direct URLs (RSS) over Google search URLs
-        rss_items = [i for i in cat_items if "google.com/search" not in i.get("link", "")]
-        gnews_items = [i for i in cat_items if "google.com/search" in i.get("link", "")]
+        # Prefer items with direct URLs (RSS) over Google News redirect URLs
+        rss_items = [i for i in cat_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
+        gnews_items = [i for i in cat_items if i not in rss_items]
         selected = (rss_items + gnews_items)[:max_per_cat]
         
         for item in selected:
@@ -240,7 +243,15 @@ def select_wine_items(data, max_items=5):
 
 def select_tourism_items(data, max_items=5):
     items = []
-    for item in data.get("תיירות", [])[:max_items]:
+    raw = data.get("תיירות", [])
+    # Prioritize PassportNews items first
+    passport_items = [i for i in raw if "PassportNews" in i.get("source_name", "") or "passportnews" in i.get("link", "").lower()]
+    other_items = [i for i in raw if i not in passport_items]
+    # Take up to 2 from PassportNews, rest from others
+    selected = passport_items[:2] + other_items[:max_items - min(2, len(passport_items))]
+    selected = selected[:max_items]
+    for item in selected:
+        is_passport = "PassportNews" in item.get("source_name", "")
         items.append({
             "id": 300 + len(items) + 1,
             "type": "news",
@@ -249,7 +260,7 @@ def select_tourism_items(data, max_items=5):
             "summary": item.get("description", item.get("title", "")),
             "sourceUrl": item.get("link", "#"),
             "sourceName": item.get("source_name", ""),
-            "importance": 6,
+            "importance": 7 if is_passport else 6,
         })
     return items
 
@@ -293,12 +304,15 @@ def select_content_items(data, max_items=5):
 # ============================================================
 
 def call_gpt(system, user, max_tokens=2000):
+    base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-    for model in ["gpt-4o-mini", "gpt-4.1-mini"]:
+    # Use correct base URL (Manus proxy or direct OpenAI)
+    api_url = f"{base_url}/chat/completions"
+    for model in ["gpt-4.1-mini", "gpt-4.1-nano", "gemini-2.5-flash"]:
         for attempt in range(3):
             try:
-                print(f"    GPT {model} attempt {attempt+1}...")
-                resp = requests.post("https://api.openai.com/v1/chat/completions",
+                print(f"    GPT {model} attempt {attempt+1} ({base_url[:40]}...)")
+                resp = requests.post(api_url,
                     headers=headers, json={
                         "model": model, "temperature": 0.3, "max_tokens": max_tokens,
                         "response_format": {"type": "json_object"},
@@ -419,9 +433,24 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         breaking = [f"📰 {i['title'][:50]}" for i in news_items[:5]]
     breaking_ts = ", ".join(f'"{ts(b)}"' for b in breaking)
     
-    exec_summary = report.get("executiveSummary", "עדכון חדשות יומי")
+    exec_summary = report.get("executiveSummary", "")
+    # If GPT failed to provide executiveSummary, build one from top headlines
+    if not exec_summary or exec_summary == "עדכון חדשות יומי":
+        top_titles = [i.get("title", "")[:60] for i in news_items[:3]]
+        if top_titles:
+            exec_summary = f"הכותרות המרכזיות היום: {top_titles[0]}"
+            if len(top_titles) > 1:
+                exec_summary += f". בנוסף: {top_titles[1]}"
+            if len(top_titles) > 2:
+                exec_summary += f". וגם: {top_titles[2]}"
+        else:
+            exec_summary = "סקירת חדשות יומית — ראו פירוט בכתבות למטה"
     conclusion = report.get("conclusion", "")
+    if not conclusion:
+        conclusion = "המשיכו לעקוב אחר ההתפתחויות במהלך היום"
     watch24 = report.get("watchNext24h", "")
+    if not watch24:
+        watch24 = "מעקב אחר התפתחויות בשווקים ובזירה הפוליטית-ביטחונית"
     
     # News items TypeScript
     def item_ts(i):
@@ -476,8 +505,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     
     typescript = f"""// Eldar Intelligence Hub — Daily Data
 // Auto-updated: {date_str} IST
-// Generated by Sofia v8 — Real Data Only, GPT for Insights Only
-
+// Generated by Sofia v9 — Real Data Only, GPT for Insights Only
 export interface NewsItem {{
   id: number;
   type: "news" | "content";
@@ -591,7 +619,7 @@ def push_to_github(typescript, now):
     sha = resp.json().get("sha", "")
     
     payload = {
-        "message": f"🦞 EIH v8 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
+        "message": f"🧠 EIH v9 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
         "content": base64.b64encode(typescript.encode()).decode(),
         "branch": "main",
     }
@@ -615,7 +643,7 @@ def main():
     hdate = f"{day_map[now.isoweekday()]}, {now.day} {months[now.month]} {now.year}"
     tstr = now.strftime("%H:%M")
     
-    print(f"=== EIH v8 — {hdate} {tstr} ===")
+    print(f"=== EIH v9 — {hdate} {tstr} ===")
     print("=== REAL DATA ONLY — GPT for insights only ===\n")
     
     # Step 1: Scrape all news
@@ -684,7 +712,7 @@ def main():
     except:
         print("  Site: timeout")
     
-    print(f"\n=== DONE! v8 — Real Data ===")
+    print(f"\n=== DONE! v9 — Real Data ===")
 
 if __name__ == "__main__":
     main()
