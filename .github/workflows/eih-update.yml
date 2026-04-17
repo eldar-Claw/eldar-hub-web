@@ -1,38 +1,30 @@
 name: EIH Auto Update
 
 on:
-  # Run 5 times daily (IST = UTC+3, so subtract 3 hours)
-  # 08:30 IST = 05:30 UTC
-  # 13:00 IST = 10:00 UTC
-  # 17:00 IST = 14:00 UTC
-  # 19:00 IST = 16:00 UTC
-  # 21:00 IST = 18:00 UTC
   schedule:
     - cron: '30 5 * * *'    # 08:30 IST
     - cron: '0 10 * * *'    # 13:00 IST
     - cron: '0 14 * * *'    # 17:00 IST
     - cron: '0 16 * * *'    # 19:00 IST
     - cron: '0 18 * * *'    # 21:00 IST
-  
-  # Allow manual trigger
   workflow_dispatch:
 
 jobs:
   update-eih:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
-      - name: Install dependencies
-        run: pip install requests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Python deps
+        run: pip install requests openai
       
       - name: Run EIH Update
         env:
@@ -41,3 +33,15 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: python scripts/update_eih.py
+      
+      - name: Install deps and build
+        run: |
+          npm install
+          npm run build
+      
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          mkdir -p .vercel
+          echo '{"projectId":"prj_TXWvhbnjHZqunhRa6ZVCkFLJnYfn","orgId":"team_iKHrrl11TxRIGdzvlzV54AtB"}' > .vercel/project.json
+          vercel --yes --prod --token ${{ secrets.VERCEL_TOKEN }}
