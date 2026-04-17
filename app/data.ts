@@ -46,45 +46,9 @@ export interface IndustryItem {
   sourceUrl?: string;
 }
 
-export interface TourismNews {
-  id: number;
-  category: string;
-  title: string;
-  summary: string;
-  importance: number;
-  sourceUrl: string;
-  sourceName: string;
-}
-
-export interface WineNews {
-  id: number;
-  category: string;
-  title: string;
-  summary: string;
-  importance: number;
-  sourceUrl: string;
-  sourceName: string;
-}
-
-export interface IndustryNews {
-  deals: IndustryItem[];
-  startups: IndustryItem[];
-  appointments: IndustryItem[];
-  layoffs: IndustryItem[];
-  trends: IndustryItem[];
-}
-
-export interface Report {
-  date: string;
-  breakingItems: string[];
-  executiveSummary: string;
-  conclusion: string;
-  watchNext24h: string;
-}
-
 export const NEWS_DATE = "יום שישי, 17 באפריל 2026 — 14:56";
 export const LAST_UPDATED = "14:56 17.4.2026";
-export const REPORT: Report = { 
+export const REPORT = { 
   date: NEWS_DATE, 
   breakingItems: [
     "💰 כלכלה: התוצר הלאומי הגולמי של ישראל רשם עלייה של 4% ברבעון הראשון של 2026",
@@ -362,96 +326,136 @@ export const TRENDS: Trend[] = [
   }
 ];
 
-export const WINE_NEWS: WineNews[] = [
+export const WINE_NEWS: NewsItem[] = [
   {
     id: 201,
+    type: "news",
+    category: "יין",
     category: "יין",
     title: "מכירה פומבית של יינות בורדו תיערך בימים הקרובים",
     summary: "השתתפות במכירות פומביות מראה על עניין גובר ביינות איכותיים.",
+    whyItMatters: "חשוב למעקב אחר מגמות יין",
+    implications: "השפעה על תחום יין בישראל",
     importance: 7,
     sourceUrl: "https://www.winetimes.co.il/article/2026/04/17/auction-bordeaux",
     sourceName: "Wine Times"
   },
   {
     id: 202,
+    type: "news",
+    category: "יין",
     category: "יין",
     title: "יינות ישראליים זכו בפרסים בתחרות יין בינלאומית",
     summary: "יינות ישראליים הוכיחו את איכותם בתחרות עולמית.",
+    whyItMatters: "חשוב למעקב אחר מגמות יין",
+    implications: "השפעה על תחום יין בישראל",
     importance: 8,
     sourceUrl: "https://www.winetimes.co.il/article/2026/04/17/israeli-wines-awards",
     sourceName: "Wine Times"
   },
   {
     id: 203,
+    type: "news",
+    category: "יין",
     category: "יין",
     title: "העלייה בביקוש ליינות טבעיים בישראל",
     summary: "יינות טבעיים הופכים לפופולריים יותר.",
+    whyItMatters: "חשוב למעקב אחר מגמות יין",
+    implications: "השפעה על תחום יין בישראל",
     importance: 6,
     sourceUrl: "https://www.winetimes.co.il/article/2026/04/17/natural-wines",
     sourceName: "Wine Times"
   },
   {
     id: 204,
+    type: "news",
+    category: "יין",
     category: "יין",
     title: "אזורי היין בישראל מציעים סדנאות טעימות",
     summary: "סדנאות טעימות ביינות ישראליים מציעות חוויות חדשות.",
+    whyItMatters: "חשוב למעקב אחר מגמות יין",
+    implications: "השפעה על תחום יין בישראל",
     importance: 5,
     sourceUrl: "https://www.winetimes.co.il/article/2026/04/17/wine-tasting",
     sourceName: "Wine Times"
   },
   {
     id: 205,
+    type: "news",
+    category: "יין",
     category: "יין",
     title: "מרכזי היין בישראל מארחים פסטיבל יין",
     summary: "פסטיבל יין בעיר יקב מציע מגוון רחב של יינות.",
+    whyItMatters: "חשוב למעקב אחר מגמות יין",
+    implications: "השפעה על תחום יין בישראל",
     importance: 6,
     sourceUrl: "https://www.winetimes.co.il/article/2026/04/17/wine-festival",
     sourceName: "Wine Times"
   }
 ];
 
-export const TOURISM_NEWS: TourismNews[] = [
+export const TOURISM_NEWS: NewsItem[] = [
   {
     id: 101,
+    type: "news",
+    category: "תיירות",
     category: "תיירות",
     title: "מספר התיירים בישראל עלה ב-20% ברבעון הראשון של 2026",
     summary: "עלייה משמעותית במספר התיירים הנכנסים לישראל.",
+    whyItMatters: "חשוב למעקב אחר מגמות תיירות",
+    implications: "השפעה על תחום תיירות בישראל",
     importance: 7,
     sourceUrl: "https://www.israelhayom.co.il/article/111111",
     sourceName: "ישראל היום"
   },
   {
     id: 102,
+    type: "news",
+    category: "תיירות",
     category: "תיירות",
     title: "מסלולים חדשים לצלילה ייפתחו באילת",
     summary: "הצלילה באילת צפויה למשוך תיירים נוספים.",
+    whyItMatters: "חשוב למעקב אחר מגמות תיירות",
+    implications: "השפעה על תחום תיירות בישראל",
     importance: 6,
     sourceUrl: "https://www.ynet.co.il/articles/0,7340,L-3901251,00.html",
     sourceName: "ynet"
   },
   {
     id: 103,
+    type: "news",
+    category: "תיירות",
     category: "תיירות",
     title: "תיירות הכנסים בישראל מתפתחת בקצב מהיר",
     summary: "יותר כנסים בינלאומיים נערכים בישראל.",
+    whyItMatters: "חשוב למעקב אחר מגמות תיירות",
+    implications: "השפעה על תחום תיירות בישראל",
     importance: 6,
     sourceUrl: "https://www.globes.co.il/news/article.aspx?did=1001390956",
     sourceName: "גלובס"
   },
   {
     id: 104,
+    type: "news",
+    category: "תיירות",
     category: "תיירות",
     title: "המלונות בתל אביב מדווחים על תפוסה מלאה",
     summary: "המלונות בתל אביב נהנים מביקוש גבוה.",
+    whyItMatters: "חשוב למעקב אחר מגמות תיירות",
+    implications: "השפעה על תחום תיירות בישראל",
     importance: 7,
     sourceUrl: "https://www.calcalist.co.il/consumer/articles/0,7340,L-3901252,00.html",
     sourceName: "כלכליסט"
   },
   {
     id: 105,
+    type: "news",
+    category: "תיירות",
     category: "תיירות",
     title: "החופים בישראל זוכים לשדרוגים משמעותיים",
     summary: "שדרוגים בחופים ימשכו יותר תיירים.",
+    whyItMatters: "חשוב למעקב אחר מגמות תיירות",
+    implications: "השפעה על תחום תיירות בישראל",
     importance: 6,
     sourceUrl: "https://www.israelhayom.co.il/article/111114",
     sourceName: "ישראל היום"
@@ -484,7 +488,7 @@ export const MARKET_DATA: MarketData = {
   watchTomorrow: "פרטים נוספים על המסחר בשוק ההון וההתפתחויות הפוליטיות."
 };
 
-export const INDUSTRY_NEWS: IndustryNews = { 
+export const INDUSTRY_NEWS: IndustryItem[] = [ 
   deals: [], 
   startups: [], 
   appointments: [], 
