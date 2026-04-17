@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, INDUSTRY_NEWS, LAST_UPDATED, MarketIndex, IndustryItem } from "./data";
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, LAST_UPDATED, MarketIndex } from "./data";
 import type { NewsItem } from "./data";
 
 // Category colors
@@ -88,7 +88,7 @@ export default function Home() {
   const toggleFilter = (cat: string) => {
     setActiveFilters(prev => {
       const next = new Set(prev);
-      if (cat === "all") return new Set(); // "הכל" clears all filters
+      if (cat === "all") return new Set();
       if (next.has(cat)) { next.delete(cat); } else { next.add(cat); }
       return next;
     });
@@ -118,7 +118,6 @@ export default function Home() {
     activeFilters.forEach(cat => { combined.push(...getItemsForCategory(cat)); });
     return combined.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
   })();
-  // Keep filteredNews and filteredContent for the rendering below
   const filteredNews = filteredItems;
   const filteredContent: NewsItem[] = [];
 
@@ -135,7 +134,6 @@ export default function Home() {
             <div className="text-left">
               <p className="text-white/60 text-[10px]">עדכון אחרון</p>
               <p className="text-white font-bold text-sm">🕐 {LAST_UPDATED}</p>
-              <p className="text-white/50 text-[10px]">עדכון אחרון</p>
             </div>
           </div>
         </div>
@@ -231,31 +229,15 @@ export default function Home() {
               <p className="text-[14px] text-blue-900 leading-7">{REPORT.watchNext24h}</p>
             </div>
 
-            {/* Market Data */}
+            {/* Market Snapshot — currencies & commodities only, no full market section */}
             {MARKET_DATA && (
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-[#1a365d] mb-4 flex items-center gap-2">
-                  📊 שוק ההון
+                  💱 מטבעות וסחורות
                   <span className="text-[12px] font-normal text-gray-500">{MARKET_DATA.date}</span>
                 </h2>
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                  {/* Indices */}
-                  <div className="p-4 border-b border-gray-100">
-                    <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">מדדים</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {MARKET_DATA.indices.map((idx: MarketIndex, i: number) => (
-                        <div key={i} className="text-center">
-                          <p className="text-[11px] text-gray-500 mb-0.5">{idx.name}</p>
-                          <p className="font-bold text-[14px] text-gray-800">{idx.value}</p>
-                          <p className={`text-[12px] font-semibold ${idx.direction === "up" ? "text-green-600" : idx.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
-                            {idx.direction === "up" ? "▲" : idx.direction === "down" ? "▼" : "●"} {idx.change}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Currencies & Commodities */}
-                  <div className="p-4 border-b border-gray-100 grid grid-cols-2 gap-4">
+                  <div className="p-4 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">מטבעות</p>
                       {MARKET_DATA.currencies.map((c: MarketIndex, i: number) => (
@@ -268,7 +250,7 @@ export default function Home() {
                       ))}
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">סחורות</p>
+                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">סחורות וקריפטו</p>
                       {MARKET_DATA.commodities.map((c: MarketIndex, i: number) => (
                         <div key={i} className="flex justify-between items-center mb-1">
                           <span className="text-[12px] text-gray-600">{c.name}</span>
@@ -279,52 +261,6 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                  {/* Headlines */}
-                  <div className="p-4 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">ישראל</p>
-                      {MARKET_DATA.israelHeadlines.map((h: string, i: number) => (
-                        <p key={i} className="text-[12px] text-gray-700 mb-1.5 flex gap-1"><span className="text-blue-400 mt-0.5">•</span>{h}</p>
-                      ))}
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">וול סטריט</p>
-                      {MARKET_DATA.wallStreetHeadlines.map((h: string, i: number) => (
-                        <p key={i} className="text-[12px] text-gray-700 mb-1.5 flex gap-1"><span className="text-blue-400 mt-0.5">•</span>{h}</p>
-                      ))}
-                    </div>
-                  </div>
-                  {MARKET_DATA.watchTomorrow && (
-                    <div className="px-4 pb-4">
-                      <p className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wider">מה לעקוב מחר</p>
-                      <p className="text-[12px] text-gray-700">{MARKET_DATA.watchTomorrow}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Industry News */}
-            {INDUSTRY_NEWS && INDUSTRY_NEWS.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-[#1a365d] mb-4">🌍 מעקב תעשייה</h2>
-                <div className="space-y-3">
-                  {(["עסקאות", "סטארטאפים", "מינויים", "פיטורים", "טרנדים"] as const).map(cat => {
-                    const items = INDUSTRY_NEWS.filter((item: IndustryItem) => item.category === cat);
-                    if (items.length === 0) return null;
-                    const catEmoji: Record<string, string> = { עסקאות: "💼", סטארטאפים: "🚀", מינויים: "👤", פיטורים: "📉", טרנדים: "💡" };
-                    return (
-                      <div key={cat} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                        <p className="text-[12px] font-bold text-gray-500 mb-2">{catEmoji[cat]} {cat}</p>
-                        {items.map((item: IndustryItem, i: number) => (
-                          <div key={i} className="mb-2 last:mb-0">
-                            <p className="text-[13px] font-semibold text-gray-800">{item.title}</p>
-                            <p className="text-[12px] text-gray-500 leading-relaxed">{item.summary}</p>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             )}
@@ -336,46 +272,38 @@ export default function Home() {
             <h2 className="text-lg font-bold text-[#1a365d] mb-4">📡 ניהול מקורות</h2>
             {[
               // חדשות ופוליטיקה
-              { name: "Times of Israel", cat: "חדשות", status: "active" },
               { name: "Ynet / Knesset", cat: "חדשות", status: "active" },
               { name: "הארץ / ערוץ 12", cat: "חדשות", status: "active" },
-              { name: "וואלה / TheMarker", cat: "חדשות", status: "active" },
-              { name: "Axios", cat: "חדשות", status: "active" },
-              { name: "NPR", cat: "חדשות", status: "active" },
-              { name: "Al Jazeera", cat: "חדשות", status: "active" },
-              { name: "CNN", cat: "חדשות", status: "active" },
-              { name: "The Guardian", cat: "חדשות", status: "active" },
-              { name: "Bloomberg", cat: "כלכלה", status: "active" },
-              { name: "Daily Mail", cat: "חדשות", status: "active" },
-              { name: "Epoch Israel", cat: "גיאופוליטיקה", status: "active" },
-              // כלכלה והייטק
-              { name: "Globes", cat: "כלכלה", status: "active" },
-              { name: "Forbes", cat: "כלכלה", status: "active" },
+              { name: "וואלה / N12", cat: "חדשות", status: "active" },
+              { name: "ישראל היום", cat: "חדשות", status: "active" },
+              // כלכלה
+              { name: "גלובס", cat: "כלכלה", status: "active" },
+              { name: "כלכליסט", cat: "כלכלה", status: "active" },
+              // טכנולוגיה — Geektime/LetsAI + Epoch
+              { name: "Geektime", cat: "טכנולוגיה", status: "active" },
+              { name: "LetsAI", cat: "טכנולוגיה", status: "active" },
+              { name: "Epoch Israel — מדע וטכנולוגיה", cat: "טכנולוגיה", status: "active" },
+              // חברה — Epoch psychology
+              { name: "Epoch Israel — פסיכולוגיה", cat: "חברה", status: "active" },
+              // רשת חברתית
               { name: "LinkedIn", cat: "מקצועי", status: "active" },
               { name: "Facebook", cat: "רשת חברתית", status: "active" },
-              { name: "Reddit", cat: "רשת חברתית", status: "active" },
-              // טכנולוגיה וסייבר
-              { name: "Hacker News", cat: "טכנולוגיה", status: "active" },
-              { name: "Dark Reading", cat: "סייבר", status: "active" },
-              { name: "404 Media", cat: "סייבר", status: "active" },
-              { name: "NBC / CBS / TechNet", cat: "טכנולוגיה", status: "active" },
               // בידור
               { name: "Netflix", cat: "בידור", status: "active" },
-              { name: "Apple TV+ / Collider", cat: "בידור", status: "active" },
-              { name: "TimeOut", cat: "בידור", status: "active" },
-              { name: "Eventim / מבלים", cat: "בידור", status: "active" },
+              { name: "Apple TV+", cat: "בידור", status: "active" },
+              { name: "קולנוע ישראל", cat: "בידור", status: "active" },
+              { name: "תיאטרון תל אביב", cat: "בידור", status: "active" },
               // אירועים
-              { name: "Lynx Events", cat: "אירועים", status: "active" },
-              { name: "Cyber Week", cat: "אירועים", status: "active" },
-              { name: "People & Computers", cat: "אירועים", status: "active" },
+              { name: "כנסי הייטק ישראל", cat: "אירועים", status: "active" },
+              { name: "Tel Aviv Tech Events", cat: "אירועים", status: "active" },
               // תיירות
               { name: "Passport News", cat: "תיירות", status: "active" },
-              { name: "למטייל", cat: "תיירות", status: "active" },
+              { name: "Luxury Resorts & Exotic", cat: "תיירות", status: "active" },
               // יין
+              { name: "Wine Spectator", cat: "יין", status: "active" },
               { name: "Decanter", cat: "יין", status: "active" },
+              { name: "Liv-ex", cat: "יין", status: "active" },
               { name: "Wine Advocate", cat: "יין", status: "active" },
-              { name: "Winecap / Liv-ex", cat: "יין", status: "active" },
-              { name: "Jancis Robinson", cat: "יין", status: "active" },
             ].map((s, i) => (
               <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -411,7 +339,7 @@ export default function Home() {
               💾 שמור הגדרות
             </button>
             <div className="text-center mt-6 text-gray-400 text-[12px]">
-              Eldar Intelligence Hub v1.0.0 MVP<br/>נוצר על ידי Shofia 🦞
+              Eldar Intelligence Hub v1.1.0<br/>נוצר על ידי Shofia 🦞
             </div>
           </div>
         )}
