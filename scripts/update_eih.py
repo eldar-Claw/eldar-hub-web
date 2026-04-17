@@ -232,6 +232,7 @@ export interface IndustryItem {{
 
 export interface TourismNews {{
   id: number;
+  category: string;
   title: string;
   summary: string;
   importance: number;
@@ -241,6 +242,7 @@ export interface TourismNews {{
 
 export interface WineNews {{
   id: number;
+  category: string;
   title: string;
   summary: string;
   importance: number;
