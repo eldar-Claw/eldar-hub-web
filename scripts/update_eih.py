@@ -11,6 +11,7 @@ import re
 import base64
 import requests
 import sys
+import time
 from datetime import datetime, timezone, timedelta
 
 # ============================================================
@@ -43,26 +44,63 @@ def format_hebrew_date(dt):
 
 
 def call_openai(system_prompt, user_prompt):
-    """Call OpenAI API directly via requests (no SDK dependency)."""
+    """Call OpenAI API with retry logic."""
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "model": "gpt-4.1-mini",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        "max_tokens": 12000,
-        "temperature": 0.7,
-    }
-    resp = requests.post(
-        f"{OPENAI_BASE_URL}/chat/completions",
-        headers=headers, json=payload, timeout=120
-    )
-    resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    # Try multiple models in order of preference
+    models = ["gpt-4o-mini", "gpt-4.1-mini", "gpt-3.5-turbo"]
+    
+    for model in models:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "max_tokens": 12000,
+            "temperature": 0.7,
+        }
+        
+        for attempt in range(3):
+            try:
+                print(f"    Attempt {attempt+1}/3 with model {model}...")
+                resp = requests.post(
+                    f"{OPENAI_BASE_URL}/chat/completions",
+                    headers=headers, json=payload, timeout=180
+                )
+                if resp.status_code == 429:
+                    wait_time = 10 * (attempt + 1)
+                    print(f"    ⏳ Rate limited, waiting {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                resp.raise_for_status()
+                print(f"    ✅ Success with model {model}")
+                return resp.json()["choices"][0]["message"]["content"].strip()
+            except requests.exceptions.HTTPError as e:
+                if resp.status_code == 429:
+                    wait_time = 10 * (attempt + 1)
+                    print(f"    ⏳ Rate limited, waiting {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                elif resp.status_code in (404, 400):
+                    print(f"    ⚠️ Model {model} not available ({resp.status_code}), trying next...")
+                    break  # Try next model
+                else:
+                    print(f"    ❌ HTTP error: {e}")
+                    if attempt < 2:
+                        time.sleep(5)
+                        continue
+                    raise
+            except Exception as e:
+                print(f"    ❌ Error: {e}")
+                if attempt < 2:
+                    time.sleep(5)
+                    continue
+                raise
+    
+    raise Exception("All models and retries exhausted")
 
 
 def generate_data_ts():
