@@ -48,6 +48,7 @@ export interface IndustryItem {
 
 export interface TourismNews {
   id: number;
+  category: string;
   title: string;
   summary: string;
   importance: number;
@@ -57,6 +58,7 @@ export interface TourismNews {
 
 export interface WineNews {
   id: number;
+  category: string;
   title: string;
   summary: string;
   importance: number;
@@ -363,6 +365,7 @@ export const TRENDS: Trend[] = [
 export const WINE_NEWS: WineNews[] = [
   {
     id: 201,
+    category: "יין",
     title: "מכירה פומבית של יינות בורדו תיערך בימים הקרובים",
     summary: "השתתפות במכירות פומביות מראה על עניין גובר ביינות איכותיים.",
     importance: 7,
@@ -371,6 +374,7 @@ export const WINE_NEWS: WineNews[] = [
   },
   {
     id: 202,
+    category: "יין",
     title: "יינות ישראליים זכו בפרסים בתחרות יין בינלאומית",
     summary: "יינות ישראליים הוכיחו את איכותם בתחרות עולמית.",
     importance: 8,
@@ -379,6 +383,7 @@ export const WINE_NEWS: WineNews[] = [
   },
   {
     id: 203,
+    category: "יין",
     title: "העלייה בביקוש ליינות טבעיים בישראל",
     summary: "יינות טבעיים הופכים לפופולריים יותר.",
     importance: 6,
@@ -387,6 +392,7 @@ export const WINE_NEWS: WineNews[] = [
   },
   {
     id: 204,
+    category: "יין",
     title: "אזורי היין בישראל מציעים סדנאות טעימות",
     summary: "סדנאות טעימות ביינות ישראליים מציעות חוויות חדשות.",
     importance: 5,
@@ -395,6 +401,7 @@ export const WINE_NEWS: WineNews[] = [
   },
   {
     id: 205,
+    category: "יין",
     title: "מרכזי היין בישראל מארחים פסטיבל יין",
     summary: "פסטיבל יין בעיר יקב מציע מגוון רחב של יינות.",
     importance: 6,
@@ -406,6 +413,7 @@ export const WINE_NEWS: WineNews[] = [
 export const TOURISM_NEWS: TourismNews[] = [
   {
     id: 101,
+    category: "תיירות",
     title: "מספר התיירים בישראל עלה ב-20% ברבעון הראשון של 2026",
     summary: "עלייה משמעותית במספר התיירים הנכנסים לישראל.",
     importance: 7,
@@ -414,6 +422,7 @@ export const TOURISM_NEWS: TourismNews[] = [
   },
   {
     id: 102,
+    category: "תיירות",
     title: "מסלולים חדשים לצלילה ייפתחו באילת",
     summary: "הצלילה באילת צפויה למשוך תיירים נוספים.",
     importance: 6,
@@ -422,6 +431,7 @@ export const TOURISM_NEWS: TourismNews[] = [
   },
   {
     id: 103,
+    category: "תיירות",
     title: "תיירות הכנסים בישראל מתפתחת בקצב מהיר",
     summary: "יותר כנסים בינלאומיים נערכים בישראל.",
     importance: 6,
@@ -430,6 +440,7 @@ export const TOURISM_NEWS: TourismNews[] = [
   },
   {
     id: 104,
+    category: "תיירות",
     title: "המלונות בתל אביב מדווחים על תפוסה מלאה",
     summary: "המלונות בתל אביב נהנים מביקוש גבוה.",
     importance: 7,
@@ -438,6 +449,7 @@ export const TOURISM_NEWS: TourismNews[] = [
   },
   {
     id: 105,
+    category: "תיירות",
     title: "החופים בישראל זוכים לשדרוגים משמעותיים",
     summary: "שדרוגים בחופים ימשכו יותר תיירים.",
     importance: 6,
