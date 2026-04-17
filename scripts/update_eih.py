@@ -168,11 +168,11 @@ def scrape_all():
             ("Israel economy GDP inflation", "en"),
             ("crypto bitcoin ethereum market today", "en"),
         ],
-        # פוליטיקה
+        # פוליטיקה — added Epoch geopolitics
         "פוליטיקה": [
             ("פוליטיקה ישראל כנסת ממשלה", "he"),
             ("site:walla.co.il פוליטיקה", "he"),
-            ("site:israelhayom.co.il פוליטיקה", "he"),
+            ("site:epoch.org.il גיאו-פוליטיקה OR מדיניות חוץ OR דיפלומטיה", "he"),
         ],
         # ביטחון
         "ביטחון": [
@@ -180,11 +180,11 @@ def scrape_all():
             ("site:n12.co.il ביטחון צבא", "he"),
             ("Israel defense IDF", "en"),
         ],
-        # חברה — added Epoch psychology
+        # חברה — Epoch psychology + philosophy + body-mind-spirit
         "חברה": [
             ("חברה ישראל חינוך בריאות כנסת", "he"),
-            ("ישראל חברה רווחה", "he"),
             ("site:epoch.org.il פסיכולוגיה OR מערכות יחסים OR התפתחות אישית", "he"),
+            ("site:epoch.org.il פילוסופיה OR חברה OR היסטוריה OR רוחניות", "he"),
         ],
         # טכנולוגיה — ONLY from Geektime/LetsAI + Epoch tech
         "טכנולוגיה": [
@@ -205,12 +205,13 @@ def scrape_all():
             ("Israel tech conference event 2026", "en"),
             ("Tel Aviv AI Cyber conference 2026", "en"),
         ],
-        # בידור — theater, movies, Netflix, Apple TV, cinema
+        # בידור — theater, movies, Netflix, Apple TV, cinema + Epoch culture
         "בידור": [
             ("Netflix new series movies 2026", "en"),
             ("Apple TV new shows 2026", "en"),
             ("סרטים חדשים קולנוע ישראל 2026", "he"),
             ("הצגות תיאטרון תל אביב 2026", "he"),
+            ("site:epoch.org.il תרבות OR אמנות OR סרט OR ביקורת", "he"),
         ],
         # יין
         "יין": [
@@ -259,7 +260,18 @@ def select_news_items(data, max_per_cat=2, total_max=20):
         cat_items = data.get(cat, [])
         rss_items = [i for i in cat_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
         gnews_items = [i for i in cat_items if i not in rss_items]
-        selected = (rss_items + gnews_items)[:max_per_cat]
+        
+        # Prioritize Epoch in all relevant categories (enriching content > plain news)
+        epoch_cats = ["חברה", "פוליטיקה", "טכנולוגיה", "בידור"]
+        if cat in epoch_cats:
+            epoch_items = [i for i in cat_items if "epoch" in i.get("source_name", "").lower() or "epoch" in i.get("link", "").lower()]
+            other_items = [i for i in cat_items if i not in epoch_items]
+            other_rss = [i for i in other_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
+            other_gnews = [i for i in other_items if i not in other_rss]
+            # Epoch first (1 item), then RSS, then Google News
+            selected = (epoch_items[:1] + other_rss + other_gnews)[:max_per_cat]
+        else:
+            selected = (rss_items + gnews_items)[:max_per_cat]
         
         for item in selected:
             items.append({
