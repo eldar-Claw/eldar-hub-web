@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""EIH v10 — Real data ONLY from scraping. GPT ONLY for analysis/insights. Fixes: whyItMatters + implications by id matching, HTML entities cleanup, smart fallbacks."""
+"""EIH v11 — Major update:
+- Removed: שוק הון section, תעשייה section
+- Fixed: מגמות (trends) now filled by GPT
+- Changed: טכנולוגיה from Geektime/LetsAI + Epoch tech only
+- Changed: תיירות — exotic destinations, road trips, resorts, unique experiences
+- Added: רשת חברתית — Facebook Israel content
+- Added: חברה — Epoch psychology
+- Added: טכנולוגיה — Epoch science & technology
+- Added: כלכלה — crypto market data
+- Changed: בידור — theater, new movies, Netflix series, cinema, Apple TV
+"""
 import os, sys, json, base64, requests, time, re, html as html_mod
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
@@ -33,9 +43,7 @@ def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
             title = item.findtext("title", "").strip()
             source_el = item.find("source")
             source_name = source_el.text if source_el is not None else ""
-            # Use Google News redirect link (redirects to actual article in browser)
             gnews_link = item.findtext("link", "").strip()
-            # Fallback: Google search URL if no link
             if not gnews_link:
                 gnews_link = f"https://www.google.com/search?q={quote_plus(title)}"
             pub_date = item.findtext("pubDate", "")
@@ -66,13 +74,12 @@ def fetch_rss(url, max_items=3):
     return items
 
 def fetch_market_data():
-    """Fetch real market data from public APIs."""
+    """Fetch real market data from public APIs — includes crypto."""
     market = {
         "indices": [], "currencies": [], "commodities": [],
         "israelHeadlines": [], "wallStreetHeadlines": [], "watchTomorrow": ""
     }
     
-    # Yahoo Finance API for real market data
     symbols = {
         "indices": [
             ("^TA125.TA", "תל אביב 125"),
@@ -89,6 +96,8 @@ def fetch_market_data():
             ("CL=F", "נפט גולמי"),
             ("GC=F", "זהב"),
             ("BTC-USD", "ביטקוין"),
+            ("ETH-USD", "את'ריום"),
+            ("SOL-USD", "סולנה"),
         ]
     }
     
@@ -108,7 +117,6 @@ def fetch_market_data():
                     change_pct = 0
                 direction = "up" if change_pct > 0 else "down" if change_pct < 0 else "stable"
                 
-                # Format value
                 if price > 10000:
                     value = f"{price:,.0f}"
                 elif price > 100:
@@ -140,9 +148,6 @@ def scrape_all():
         ("כלכלה", "כלכליסט", "https://www.calcalist.co.il/GeneralRSS/0,16335,L-8,00.xml"),
         # חברה
         ("חברה", "ynet", "https://www.ynet.co.il/Integration/StoryRss2.xml"),
-        # טכנולוגיה
-        ("טכנולוגיה", "Hacker News", "https://hnrss.org/newest?points=100"),
-        ("טכנולוגיה", "Reddit Tech", "https://www.reddit.com/r/technology/.rss"),
     ]
     
     for cat, name, url in rss_feeds:
@@ -153,33 +158,77 @@ def scrape_all():
             i["category"] = cat
         data.setdefault(cat, []).extend(items)
     
-    # Google News queries for each category — based on full source list
+    # Google News queries — UPDATED sources per user request
     queries = {
-        # חדשות ישראל
-        "כלכלה": [("כלכלה ישראל ynet גלובס כלכליסט", "he"), ("Israel economy GDP inflation", "en")],
-        "פוליטיקה": [("פוליטיקה ישראל כנסת ממשלה", "he"), ("site:walla.co.il פוליטיקה", "he"), ("site:israelhayom.co.il פוליטיקה", "he")],
-        "ביטחון": [("ביטחון ישראל צהל מבצע", "he"), ("site:n12.co.il ביטחון צבא", "he"), ("Israel defense IDF", "en")],
-        "חברה": [("חברה ישראל חינוך בריאות כנסת", "he"), ("ישראל חברה רווחה", "he")],
-        "טכנולוגיה": [("AI artificial intelligence news", "en"), ("cybersecurity news 2026", "en"), ("Israel cyber AI startup", "en")],
-        # תוכן מקצועי / רשת חברתית
-        "רשת חברתית": [("CISO Israel cybersecurity LinkedIn", "en"), ("AI startup Israel LinkedIn", "en"), ("social media trends viral 2026", "en")],
+        # כלכלה — includes crypto
+        "כלכלה": [
+            ("כלכלה ישראל ynet גלובס כלכליסט", "he"),
+            ("Israel economy GDP inflation", "en"),
+            ("crypto bitcoin ethereum market today", "en"),
+        ],
+        # פוליטיקה
+        "פוליטיקה": [
+            ("פוליטיקה ישראל כנסת ממשלה", "he"),
+            ("site:walla.co.il פוליטיקה", "he"),
+            ("site:israelhayom.co.il פוליטיקה", "he"),
+        ],
+        # ביטחון
+        "ביטחון": [
+            ("ביטחון ישראל צהל מבצע", "he"),
+            ("site:n12.co.il ביטחון צבא", "he"),
+            ("Israel defense IDF", "en"),
+        ],
+        # חברה — added Epoch psychology
+        "חברה": [
+            ("חברה ישראל חינוך בריאות כנסת", "he"),
+            ("ישראל חברה רווחה", "he"),
+            ("site:epoch.org.il פסיכולוגיה OR מערכות יחסים OR התפתחות אישית", "he"),
+        ],
+        # טכנולוגיה — ONLY from Geektime/LetsAI + Epoch tech
+        "טכנולוגיה": [
+            ("site:geektime.co.il AI OR סטארטאפ OR טכנולוגיה", "he"),
+            ("site:epoch.org.il טכנולוגיה OR מדע OR חדשנות", "he"),
+            ("LetsAI Israel AI artificial intelligence", "en"),
+        ],
+        # רשת חברתית — added Facebook
+        "רשת חברתית": [
+            ("CISO Israel cybersecurity LinkedIn", "en"),
+            ("AI startup Israel LinkedIn", "en"),
+            ("Facebook Israel viral post trending", "en"),
+            ("פייסבוק ישראל ויראלי פוסט", "he"),
+        ],
         # אירועים
-        "אירועים": [("כנס הייטק ישראל 2026", "he"), ("Israel tech conference event 2026", "en"), ("Tel Aviv AI Cyber conference 2026", "en")],
-        # בידור
-        "בידור": [("Netflix new series 2026", "en"), ("Apple TV new shows 2026", "en"), ("הופעות תל אביב תיאטרון כנסים", "he")],
+        "אירועים": [
+            ("כנס הייטק ישראל 2026", "he"),
+            ("Israel tech conference event 2026", "en"),
+            ("Tel Aviv AI Cyber conference 2026", "en"),
+        ],
+        # בידור — theater, movies, Netflix, Apple TV, cinema
+        "בידור": [
+            ("Netflix new series movies 2026", "en"),
+            ("Apple TV new shows 2026", "en"),
+            ("סרטים חדשים קולנוע ישראל 2026", "he"),
+            ("הצגות תיאטרון תל אביב 2026", "he"),
+        ],
         # יין
-        "יין": [("Wine Spectator review 2026", "en"), ("wine market Liv-ex investment Bordeaux", "en"), ("Decanter Bordeaux Burgundy Barolo", "en"), ("DRC Lafite Sassicaia Krug Margaux wine", "en")],
-        # תיירות — passportnews (ייעודי) + כללי
-        "תיירות": [("site:passportnews.co.il תיירות OR מלונות OR תעופה OR טיסות", "he"), ("תיירות ישראל מלונות יוקרה", "he"), ("Israel tourism travel 2026", "en")],
-        # שוק הון
-        "שוק הון": [("stock market today S&P 500 NASDAQ", "en"), ("בורסה תל אביב מדדים היום", "he")],
-        # תעשייה
-        "תעשייה": [("Israel startup funding round 2026", "en"), ("Israel tech M&A acquisition", "en"), ("Check Point Wiz CrowdStrike SentinelOne", "en"), ("הייטק ישראל פיטורים גיוס", "he")],
+        "יין": [
+            ("Wine Spectator review 2026", "en"),
+            ("wine market Liv-ex investment Bordeaux", "en"),
+            ("Decanter Bordeaux Burgundy Barolo", "en"),
+            ("DRC Lafite Sassicaia Krug Margaux wine", "en"),
+        ],
+        # תיירות — exotic destinations, road trips, resorts, unique experiences + PassportNews
+        "תיירות": [
+            ("site:passportnews.co.il תיירות OR מלונות OR תעופה OR טיסות", "he"),
+            ("exotic travel destinations 2026 luxury resort", "en"),
+            ("road trip adventure unique travel experience", "en"),
+            ("best luxury resorts Maldives Bali Seychelles 2026", "en"),
+        ],
     }
     
     for cat, qs in queries.items():
         for q, lang in qs:
-            print(f"  GNews: {cat} — '{q[:35]}'")
+            print(f"  GNews: {cat} — '{q[:40]}'")
             gl = "IL" if lang == "he" else "US"
             ceid = "IL:he" if lang == "he" else "US:en"
             items = fetch_google_news(q, lang, gl, ceid, 3)
@@ -195,7 +244,7 @@ def scrape_all():
     return data
 
 # ============================================================
-# PART 2: SELECT BEST ITEMS — No GPT needed, just pick top items
+# PART 2: SELECT BEST ITEMS
 # ============================================================
 
 def select_news_items(data, max_per_cat=2, total_max=20):
@@ -206,7 +255,6 @@ def select_news_items(data, max_per_cat=2, total_max=20):
     
     for cat in news_cats:
         cat_items = data.get(cat, [])
-        # Prefer items with direct URLs (RSS) over Google News redirect URLs
         rss_items = [i for i in cat_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
         gnews_items = [i for i in cat_items if i not in rss_items]
         selected = (rss_items + gnews_items)[:max_per_cat]
@@ -247,11 +295,10 @@ def select_tourism_items(data, max_items=5):
     # Prioritize PassportNews items first
     passport_items = [i for i in raw if "PassportNews" in i.get("source_name", "") or "passportnews" in i.get("link", "").lower()]
     other_items = [i for i in raw if i not in passport_items]
-    # Take up to 2 from PassportNews, rest from others
     selected = passport_items[:2] + other_items[:max_items - min(2, len(passport_items))]
     selected = selected[:max_items]
     for item in selected:
-        is_passport = "PassportNews" in item.get("source_name", "")
+        is_passport = "PassportNews" in item.get("source_name", "") or "passportnews" in item.get("source_name", "").lower()
         items.append({
             "id": 300 + len(items) + 1,
             "type": "news",
@@ -264,19 +311,6 @@ def select_tourism_items(data, max_items=5):
         })
     return items
 
-def select_industry_items(data, max_items=5):
-    cat_map = ["עסקאות", "סטארטאפים", "מינויים", "טרנדים", "פיטורים"]
-    items = []
-    raw = data.get("תעשייה", [])
-    for i, item in enumerate(raw[:max_items]):
-        items.append({
-            "category": cat_map[i % len(cat_map)],
-            "title": item.get("title", ""),
-            "summary": item.get("description", item.get("title", "")),
-            "sourceUrl": item.get("link", "#"),
-        })
-    return items
-
 def select_content_items(data, max_items=5):
     """Select deeper content items from various categories."""
     content_cats = ["טכנולוגיה", "כלכלה", "ביטחון", "חברה", "רשת חברתית"]
@@ -285,7 +319,7 @@ def select_content_items(data, max_items=5):
     for cat in content_cats:
         cat_items = data.get(cat, [])
         if len(cat_items) > 2:
-            item = cat_items[2]  # Take 3rd item as "deeper content"
+            item = cat_items[2]
             items.append({
                 "id": idx,
                 "type": "content",
@@ -306,7 +340,6 @@ def select_content_items(data, max_items=5):
 def call_gpt(system, user, max_tokens=2000):
     base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-    # Use correct base URL (Manus proxy or direct OpenAI)
     api_url = f"{base_url}/chat/completions"
     for model in ["gpt-4.1-mini", "gpt-4.1-nano", "gemini-2.5-flash"]:
         for attempt in range(3):
@@ -328,15 +361,15 @@ def call_gpt(system, user, max_tokens=2000):
     return None
 
 def get_insights(news_items, market_headlines):
-    """GPT generates ONLY insights — whyItMatters, implications, trends, summary. Uses item id for matching."""
-    headlines = "\n".join(f"- id={i['id']}: [{i['category']}] {i['title']}" for i in news_items[:20])
-    market_info = "\n".join(f"- {h}" for h in market_headlines[:6])
+    """GPT generates insights — whyItMatters, implications, trends, summary. Uses item id for matching."""
+    headlines = "\n".join(f"- id={i['id']}: [{i['category']}] {i['title']}" for i in news_items[:25])
+    market_info = "\n".join(f"- {h}" for h in market_headlines[:10])
     
     prompt = f"""Here are today's real headlines from Israel (each has an id number):
 
 {headlines}
 
-Market headlines:
+Market data:
 {market_info}
 
 Generate JSON with analysis and insights for EACH headline by its id:
@@ -345,7 +378,7 @@ Generate JSON with analysis and insights for EACH headline by its id:
     {{"id": 1, "whyItMatters": "one sentence in Hebrew explaining WHY this matters to an Israeli business executive", "implications": "one sentence in Hebrew about practical implications or what to expect next"}}
   ],
   "trends": [
-    {{"title": "trend name in Hebrew", "description": "1 sentence in Hebrew", "direction": "up/down/stable"}}
+    {{"title": "trend name in Hebrew", "description": "detailed sentence in Hebrew explaining the trend", "direction": "up/down/stable"}}
   ],
   "executiveSummary": "2-3 sentences summary in Hebrew connecting the main stories",
   "conclusion": "1 sentence in Hebrew",
@@ -357,7 +390,9 @@ CRITICAL RULES:
 - insights: MUST include an entry for EVERY id listed above
 - whyItMatters: explain WHY this headline matters — do NOT repeat the headline or summary
 - implications: what are the practical consequences or what should we watch for — do NOT repeat the headline
-- trends: exactly 3 macro trends
+- trends: exactly 3 macro trends with DETAILED descriptions (not empty!)
+  - Each trend MUST have a meaningful title and a full descriptive sentence
+  - Example: {{"title": "עליית הבינה המלאכותית בתעשייה", "description": "חברות טכנולוגיה ישראליות מאמצות פתרונות בינה מלאכותית בקצב מואץ, עם השפעה על שוק העבודה והתחרותיות", "direction": "up"}}
 - breakingItems: top 5 headlines with emoji prefix
 - ALL text in Hebrew using simple language
 - NEVER use Hebrew abbreviations with double quotes (write תל אביב not ת"א)
@@ -365,8 +400,8 @@ CRITICAL RULES:
 """
     
     raw = call_gpt(
-        "You are a senior Hebrew intelligence analyst writing for Israeli business executives. For each headline, provide unique analysis explaining WHY it matters and its IMPLICATIONS. Never repeat the headline text. Never invent news.",
-        prompt, 3000
+        "You are a senior Hebrew intelligence analyst writing for Israeli business executives. For each headline, provide unique analysis explaining WHY it matters and its IMPLICATIONS. For trends, provide DETAILED descriptions. Never repeat the headline text. Never invent news.",
+        prompt, 3500
     )
     
     if not raw:
@@ -381,7 +416,7 @@ CRITICAL RULES:
         return None
 
 # ============================================================
-# PART 4: SANITIZE — Clean Hebrew abbreviations
+# PART 4: SANITIZE — Clean Hebrew abbreviations + HTML entities
 # ============================================================
 
 ABBREVS = {
@@ -395,15 +430,15 @@ ABBREVS = {
 
 def sanitize(s):
     if not isinstance(s, str): return str(s) if s is not None else ""
-    # Decode HTML entities (&#8226; -> •, &nbsp; -> space, etc.)
+    # Decode HTML entities
     s = html_mod.unescape(s)
-    # Replace bullet chars with dash for cleaner display
-    s = s.replace('•', ' - ').replace('\xa0', ' ')
+    # Replace bullet chars with dash
+    s = s.replace('\u2022', ' - ').replace('\xa0', ' ')
     for a, r in ABBREVS.items():
         s = s.replace(a, r)
-    # Remove any remaining Hebrew double-quote patterns
+    # Remove remaining Hebrew double-quote patterns
     s = re.sub(r'([\u0590-\u05FF])"([\u0590-\u05FF])', r'\1\2', s)
-    # Remove broken/truncated HTML entities (e.g. &#8226 without semicolon at end of truncated text)
+    # Remove broken/truncated HTML entities
     s = re.sub(r'&#\d*$', '', s)
     s = re.sub(r'&\w*$', '', s)
     # Clean up multiple spaces
@@ -416,11 +451,11 @@ def ts(s):
     return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").replace("\r", "")
 
 # ============================================================
-# PART 5: BUILD TYPESCRIPT — Template with real data
+# PART 5: BUILD TYPESCRIPT — NO market section, NO industry section
 # ============================================================
 
 def build_typescript(news_items, content_items, wine_items, tourism_items, 
-                     market_data, industry_items, insights, now):
+                     market_data, insights, now):
     date_str = now.strftime("%H:%M %d.%m.%Y")
     news_date = now.strftime("%d.%m.%Y")
     
@@ -452,13 +487,11 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         ins = insight_map.get(item_id, {})
         cat = item.get("category", "")
         
-        # whyItMatters: GPT insight > fallback (never copy summary)
         if ins.get("whyItMatters"):
             item["whyItMatters"] = ins["whyItMatters"]
         elif not item.get("whyItMatters") or item.get("whyItMatters") == item.get("summary"):
             item["whyItMatters"] = CATEGORY_FALLBACKS.get(cat, "כתבה שכדאי לעקוב אחריה")
         
-        # implications: GPT insight > fallback (never empty)
         if ins.get("implications"):
             item["implications"] = ins["implications"]
         elif not item.get("implications"):
@@ -472,7 +505,6 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     breaking_ts = ", ".join(f'"{ts(b)}"' for b in breaking)
     
     exec_summary = report.get("executiveSummary", "")
-    # If GPT failed to provide executiveSummary, build one from top headlines
     if not exec_summary or exec_summary == "עדכון חדשות יומי":
         top_titles = [i.get("title", "")[:60] for i in news_items[:3]]
         if top_titles:
@@ -488,7 +520,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         conclusion = "המשיכו לעקוב אחר ההתפתחויות במהלך היום"
     watch24 = report.get("watchNext24h", "")
     if not watch24:
-        watch24 = "מעקב אחר התפתחויות בשווקים ובזירה הפוליטית-ביטחונית"
+        watch24 = "מעקב אחר התפתחויות בזירה הפוליטית-ביטחונית"
     
     # News items TypeScript
     def item_ts(i):
@@ -499,15 +531,19 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     wine_ts_str = ",\n".join(item_ts(i) for i in wine_items)
     tourism_ts_str = ",\n".join(item_ts(i) for i in tourism_items)
     
-    # Trends
-    trends = report.get("trends", [
-        {"title": "מגמה כלכלית", "description": "עדכון שוק", "direction": "stable"},
-        {"title": "מגמה טכנולוגית", "description": "התפתחויות בתחום", "direction": "up"},
-        {"title": "מגמה גלובלית", "description": "שינויים בעולם", "direction": "stable"},
-    ])
+    # Trends — with strong fallback
+    trends = report.get("trends", [])
+    # Validate trends have real content
+    valid_trends = [t for t in trends if t.get("description") and len(t.get("description", "")) > 5]
+    if len(valid_trends) < 3:
+        valid_trends = [
+            {"title": "עליית הבינה המלאכותית", "description": "חברות ישראליות מאמצות פתרונות בינה מלאכותית בקצב מואץ, עם השפעה על שוק העבודה והתחרותיות הגלובלית", "direction": "up"},
+            {"title": "מתיחות גיאופוליטית", "description": "ההתפתחויות הביטחוניות באזור ממשיכות להשפיע על הכלכלה, התיירות וסביבת העסקים בישראל", "direction": "stable"},
+            {"title": "שוק הקריפטו", "description": "המטבעות הדיגיטליים ממשיכים לתפוס מקום מרכזי בשיח הכלכלי עם תנודתיות גבוהה ורגולציה מתפתחת", "direction": "up"},
+        ]
     trends_ts = ",\n".join(
         f'  {{ title: "{ts(t.get("title",""))}", description: "{ts(t.get("description",""))}", direction: "{t.get("direction","stable")}" }}'
-        for t in trends[:3]
+        for t in valid_trends[:3]
     )
     
     # Market data
@@ -523,9 +559,8 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         [x for x in news_items if x.get("category") == "כלכלה"][:3]
     )]
     ws_headlines = [i["title"][:60] for i in (
-        [x for x in news_items + content_items if "stock" in x.get("title","").lower() or "market" in x.get("title","").lower() or x.get("category") == "שוק הון"][:3]
+        [x for x in news_items + content_items if "stock" in x.get("title","").lower() or "market" in x.get("title","").lower() or "crypto" in x.get("title","").lower()][:3]
     )]
-    # Fallback
     if not il_headlines:
         il_headlines = [i["title"][:60] for i in news_items[:3]]
     if not ws_headlines:
@@ -535,15 +570,11 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     ws_h = ", ".join(f'"{ts(h)}"' for h in ws_headlines)
     watch_tomorrow = market_data.get("watchTomorrow", watch24 or "מעקב אחר שווקים")
     
-    # Industry
-    ind_ts = ",\n".join(
-        f'  {{ category: "{ts(i.get("category","טרנדים"))}" as const, title: "{ts(i.get("title",""))}", summary: "{ts(i.get("summary",""))}", sourceUrl: "{ts(i.get("sourceUrl","#"))}" }}'
-        for i in industry_items[:5]
-    )
+    # NO INDUSTRY section anymore
     
     typescript = f"""// Eldar Intelligence Hub — Daily Data
 // Auto-updated: {date_str} IST
-// Generated by Sofia v10 — Real Data Only, GPT for Insights Only
+// Generated by Sofia v11 — Real Data Only, GPT for Insights Only
 export interface NewsItem {{
   id: number;
   type: "news" | "content";
@@ -579,13 +610,6 @@ export interface MarketData {{
   israelHeadlines: string[];
   wallStreetHeadlines: string[];
   watchTomorrow: string;
-}}
-
-export interface IndustryItem {{
-  category: "עסקאות" | "סטארטאפים" | "מינויים" | "פיטורים" | "טרנדים";
-  title: string;
-  summary: string;
-  sourceUrl?: string;
 }}
 
 export const NEWS_DATE = "{news_date}";
@@ -635,10 +659,6 @@ export const MARKET_DATA: MarketData = {{
   wallStreetHeadlines: [{ws_h}],
   watchTomorrow: "{ts(watch_tomorrow)}",
 }};
-
-export const INDUSTRY_NEWS: IndustryItem[] = [
-{ind_ts}
-];
 """
     return typescript
 
@@ -649,7 +669,6 @@ export const INDUSTRY_NEWS: IndustryItem[] = [
 def push_to_github(typescript, now):
     gh = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     
-    # Get current SHA
     resp = requests.get(
         "https://api.github.com/repos/eldar-Claw/eldar-hub-web/contents/app/data.ts?ref=main",
         headers=gh, timeout=30
@@ -657,7 +676,7 @@ def push_to_github(typescript, now):
     sha = resp.json().get("sha", "")
     
     payload = {
-        "message": f"🧠 EIH v10 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
+        "message": f"🧠 EIH v11 Update — {now.strftime('%d/%m/%Y %H:%M')} IST — Real Data",
         "content": base64.b64encode(typescript.encode()).decode(),
         "branch": "main",
     }
@@ -681,15 +700,15 @@ def main():
     hdate = f"{day_map[now.isoweekday()]}, {now.day} {months[now.month]} {now.year}"
     tstr = now.strftime("%H:%M")
     
-    print(f"=== EIH v10 — {hdate} {tstr} ===")
-    print("=== REAL DATA ONLY — GPT for insights only (v10) ===\n")
+    print(f"=== EIH v11 — {hdate} {tstr} ===")
+    print("=== REAL DATA ONLY — GPT for insights only (v11) ===\n")
     
     # Step 1: Scrape all news
     print("[1] Scraping real news...")
     scraped = scrape_all()
     
-    # Step 2: Fetch real market data
-    print("\n[2] Fetching real market data...")
+    # Step 2: Fetch real market data (includes crypto)
+    print("\n[2] Fetching real market data (+ crypto)...")
     market_data = fetch_market_data()
     
     # Step 3: Select best items (no GPT)
@@ -698,35 +717,39 @@ def main():
     content_items = select_content_items(scraped, max_items=5)
     wine_items = select_wine_items(scraped, max_items=5)
     tourism_items = select_tourism_items(scraped, max_items=5)
-    industry_items = select_industry_items(scraped, max_items=5)
     
-    print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}, Industry: {len(industry_items)}")
+    print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}")
     
     # Step 4: GPT for insights ONLY
     print("\n[4] GPT — Insights only...")
-    market_headlines = [f"{i['name']}: {i['value']} ({i['change']})" for i in market_data.get("indices", [])]
+    market_headlines = [f"{i['name']}: {i['value']} ({i['change']})" for i in 
+                        market_data.get("indices", []) + market_data.get("commodities", [])]
     insights = get_insights(news_items + wine_items + tourism_items, market_headlines)
     if insights:
         print("  Insights: ✅")
+        # Verify trends have content
+        trends = insights.get("trends", [])
+        for t in trends:
+            print(f"    Trend: {t.get('title', 'N/A')} — {t.get('description', 'EMPTY')[:50]}")
     else:
         print("  Insights: ⚠️ GPT failed, using defaults")
     
-    # Step 5: Build TypeScript
+    # Step 5: Build TypeScript (NO industry)
     print("\n[5] Building TypeScript...")
     typescript = build_typescript(
         news_items, content_items, wine_items, tourism_items,
-        market_data, industry_items, insights, now
+        market_data, insights, now
     )
     print(f"  Generated: {len(typescript)} chars")
     
     # Save locally
-    with open("/tmp/v8_data.ts", "w") as f:
+    with open("/tmp/v11_data.ts", "w") as f:
         f.write(typescript)
     
-    # Validate
-    checks = ["NEWS_DATE","LAST_UPDATED","REPORT","NEWS_ITEMS","CONTENT_ITEMS","TRENDS","WINE_NEWS","TOURISM_NEWS","MARKET_DATA","INDUSTRY_NEWS"]
+    # Validate — NO INDUSTRY_NEWS check
+    checks = ["NEWS_DATE","LAST_UPDATED","REPORT","NEWS_ITEMS","CONTENT_ITEMS","TRENDS","WINE_NEWS","TOURISM_NEWS","MARKET_DATA"]
     ok = all(f"export const {c}" in typescript for c in checks)
-    print(f"  Validation: {'✅ 10/10' if ok else '❌'}")
+    print(f"  Validation: {'✅ 9/9' if ok else '❌'}")
     
     if not ok:
         print("  ABORT: validation failed")
@@ -750,7 +773,7 @@ def main():
     except:
         print("  Site: timeout")
     
-    print(f"\n=== DONE! v10 — Real Data ===")
+    print(f"\n=== DONE! v11 — Real Data ===")
 
 if __name__ == "__main__":
     main()
