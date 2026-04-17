@@ -243,8 +243,11 @@ export default function Home() {
                       {MARKET_DATA.currencies.map((c: MarketIndex, i: number) => (
                         <div key={i} className="flex justify-between items-center mb-1">
                           <span className="text-[12px] text-gray-600">{c.name}</span>
-                          <span className={`text-[12px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
-                            {c.value} {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"}
+                          <span className="flex items-center gap-1">
+                            <span className="text-[12px] font-semibold text-gray-700">{c.value}</span>
+                            <span className={`text-[11px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-400"}`}>
+                              {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"} {c.change}
+                            </span>
                           </span>
                         </div>
                       ))}
@@ -254,8 +257,11 @@ export default function Home() {
                       {MARKET_DATA.commodities.map((c: MarketIndex, i: number) => (
                         <div key={i} className="flex justify-between items-center mb-1">
                           <span className="text-[12px] text-gray-600">{c.name}</span>
-                          <span className={`text-[12px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-500"}`}>
-                            {c.value} {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"}
+                          <span className="flex items-center gap-1">
+                            <span className="text-[12px] font-semibold text-gray-700">{c.value}</span>
+                            <span className={`text-[11px] font-semibold ${c.direction === "up" ? "text-green-600" : c.direction === "down" ? "text-red-600" : "text-gray-400"}`}>
+                              {c.direction === "up" ? "▲" : c.direction === "down" ? "▼" : "●"} {c.change}
+                            </span>
                           </span>
                         </div>
                       ))}
