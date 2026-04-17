@@ -24,6 +24,8 @@ except ImportError:
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 GITHUB_TOKEN = os.environ.get("GH_PAT", "")
 VERCEL_TOKEN = os.environ.get("VERCEL_TOKEN", "")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8736148084:AAGdhexvaFtJrJerI-yW90wlvfUXnbKxCgo")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "479774667")
 
 IST = timezone(timedelta(hours=3))
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -667,7 +669,85 @@ export const MARKET_DATA: MarketData = {{
     return typescript
 
 # ============================================================
-# PART 6: PUSH TO GITHUB + VERIFY
+# PART 6: SEND TELEGRAM NOTIFICATION
+# ============================================================
+
+def send_telegram(news_items, wine_items, tourism_items, insights, now):
+    """Send a Telegram message with top headlines + link."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("  Telegram: ⚠️ No token/chat_id")
+        return False
+    
+    day_map = {1:"שני",2:"שלישי",3:"רביעי",4:"חמישי",5:"שישי",6:"שבת",7:"ראשון"}
+    date_str = f"יום {day_map[now.isoweekday()]}, {now.day}.{now.month:02d}.{now.year} | {now.strftime('%H:%M')}"
+    
+    # Executive summary
+    exec_summary = ""
+    if insights:
+        exec_summary = insights.get("executiveSummary", "")
+    if not exec_summary:
+        exec_summary = "עדכון חדשות יומי"
+    # Truncate to 200 chars
+    if len(exec_summary) > 200:
+        exec_summary = exec_summary[:197] + "..."
+    
+    # Top headlines — pick top 5 by importance
+    all_items = sorted(news_items + wine_items + tourism_items, key=lambda x: x.get("importance", 5), reverse=True)
+    top5 = all_items[:5]
+    
+    headlines = ""
+    cat_emoji = {
+        "כלכלה": "💰", "פוליטיקה": "🏛", "חברה": "👥", "צבא וביטחון": "🔒",
+        "טכנולוגיה": "💻", "תיירות": "✈️", "רשת חברתית": "📱", "אירועים": "📅",
+        "בידור": "🎬", "יין": "🍷"
+    }
+    for i, item in enumerate(top5, 1):
+        emoji = cat_emoji.get(item.get("category", ""), "📌")
+        title = item.get("title", "")[:80]
+        headlines += f"{i}. {emoji} {title}\n"
+    
+    # Trends
+    trends_text = ""
+    if insights and insights.get("trends"):
+        trend_arrows = {"up": "📈", "down": "📉", "stable": "➡️"}
+        for t in insights["trends"][:3]:
+            arrow = trend_arrows.get(t.get("direction", "stable"), "➡️")
+            trends_text += f"{arrow} {t.get('title', '')}\n"
+    
+    # Build message
+    msg = f"""🧠 *Eldar Intelligence Hub*
+📅 {date_str}
+
+📋 *תקציר:*
+{exec_summary}
+
+🔥 *כותרות מובילות:*
+{headlines}"""
+    
+    if trends_text:
+        msg += f"\n📈 *מגמות:*\n{trends_text}"
+    
+    msg += f"\n🔗 [צפה בדוח המלא](https://eldar-hub-web.vercel.app)\n\n_Sofia v11_ 🦞"
+    
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id": TELEGRAM_CHAT_ID,
+                "text": msg,
+                "parse_mode": "Markdown",
+                "disable_web_page_preview": True
+            },
+            timeout=15
+        )
+        ok = resp.json().get("ok", False)
+        return ok
+    except Exception as e:
+        print(f"  Telegram error: {e}")
+        return False
+
+# ============================================================
+# PART 7: PUSH TO GITHUB + VERIFY
 # ============================================================
 
 def push_to_github(typescript, now):
@@ -768,8 +848,13 @@ def main():
         print("  ABORT: push failed")
         return
     
-    # Step 7: Check site
-    print("\n[7] Checking site...")
+    # Step 7: Send Telegram notification
+    print("\n[7] Sending Telegram...")
+    tg_ok = send_telegram(news_items, wine_items, tourism_items, insights, now)
+    print(f"  Telegram: {'✅' if tg_ok else '❌'}")
+    
+    # Step 8: Check site
+    print("\n[8] Checking site...")
     time.sleep(5)
     try:
         resp = requests.get("https://eldar-hub-web.vercel.app", timeout=15)
