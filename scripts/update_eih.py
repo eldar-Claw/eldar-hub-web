@@ -817,14 +817,14 @@ def main():
     success, status = push_to_github(typescript, now)
     print(f"  Push: {'✅' if success else '❌'} ({status})")
     
-    if not success:
-        print("  ABORT: push failed")
-        return
-    
-    # Step 7: Send Telegram notification
+    # Step 7: Send Telegram notification (always, even if push failed)
     print("\n[7] Sending Telegram...")
     tg_ok = send_telegram(news_items, wine_items, tourism_items, insights, now)
     print(f"  Telegram: {'✅' if tg_ok else '❌'}")
+    
+    if not success:
+        print("  ABORT: push failed")
+        return
     
     # Step 8: Check site
     print("\n[8] Checking site...")
@@ -839,4 +839,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
