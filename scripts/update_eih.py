@@ -685,7 +685,7 @@ export const MARKET_DATA: MarketData = {{
 # ============================================================
 
 def send_telegram(news_items, wine_items, tourism_items, insights, now):
-    """Send a Telegram message with top headlines + link."""
+    """Send a short Telegram notification that EIH ran successfully."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("  Telegram: ⚠️ No token/chat_id")
         return False
@@ -693,53 +693,14 @@ def send_telegram(news_items, wine_items, tourism_items, insights, now):
     day_map = {1:"שני",2:"שלישי",3:"רביעי",4:"חמישי",5:"שישי",6:"שבת",7:"ראשון"}
     date_str = f"יום {day_map[now.isoweekday()]}, {now.day}.{now.month:02d}.{now.year} | {now.strftime('%H:%M')}"
     
-    # Executive summary
-    exec_summary = ""
-    if insights:
-        exec_summary = insights.get("executiveSummary", "")
-    if not exec_summary:
-        exec_summary = "עדכון חדשות יומי"
-    # Truncate to 200 chars
-    if len(exec_summary) > 200:
-        exec_summary = exec_summary[:197] + "..."
+    total = len(news_items) + len(wine_items) + len(tourism_items)
     
-    # Top headlines — pick top 5 by importance
-    all_items = sorted(news_items + wine_items + tourism_items, key=lambda x: x.get("importance", 5), reverse=True)
-    top5 = all_items[:5]
-    
-    headlines = ""
-    cat_emoji = {
-        "כלכלה": "💰", "פוליטיקה": "🏛", "חברה": "👥", "צבא וביטחון": "🔒",
-        "טכנולוגיה": "💻", "תיירות": "✈️", "רשת חברתית": "📱", "אירועים": "📅",
-        "בידור": "🎬", "יין": "🍷"
-    }
-    for i, item in enumerate(top5, 1):
-        emoji = cat_emoji.get(item.get("category", ""), "📌")
-        title = item.get("title", "")[:80]
-        headlines += f"{i}. {emoji} {title}\n"
-    
-    # Trends
-    trends_text = ""
-    if insights and insights.get("trends"):
-        trend_arrows = {"up": "📈", "down": "📉", "stable": "➡️"}
-        for t in insights["trends"][:3]:
-            arrow = trend_arrows.get(t.get("direction", "stable"), "➡️")
-            trends_text += f"{arrow} {t.get('title', '')}\n"
-    
-    # Build message
-    msg = f"""🧠 *Eldar Intelligence Hub*
+    msg = f"""✅ *EIH עודכן בהצלחה*
 📅 {date_str}
+📊 {total} כתבות עודכנו
+🔗 [צפה באתר](https://eldar-hub-web.vercel.app)
 
-📋 *תקציר:*
-{exec_summary}
-
-🔥 *כותרות מובילות:*
-{headlines}"""
-    
-    if trends_text:
-        msg += f"\n📈 *מגמות:*\n{trends_text}"
-    
-    msg += f"\n🔗 [צפה בדוח המלא](https://eldar-hub-web.vercel.app)\n\n_Sofia v11_ 🦞"
+_Sofia v11_ 🦞"""
     
     try:
         resp = requests.post(
@@ -878,3 +839,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
