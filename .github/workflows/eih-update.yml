@@ -1,5 +1,4 @@
 name: EIH Auto Update
-
 on:
   schedule:
     - cron: '30 5 * * *'    # 08:30 IST
@@ -8,7 +7,6 @@ on:
     - cron: '0 16 * * *'    # 19:00 IST
     - cron: '0 18 * * *'    # 21:00 IST
   workflow_dispatch:
-
 jobs:
   update-eih:
     runs-on: ubuntu-latest
@@ -32,6 +30,8 @@ jobs:
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           GH_PAT: ${{ secrets.GH_PAT }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scripts/update_eih.py
       
       - name: Install deps and build
@@ -45,3 +45,16 @@ jobs:
           mkdir -p .vercel
           echo '{"projectId":"prj_TXWvhbnjHZqunhRa6ZVCkFLJnYfn","orgId":"team_iKHrrl11TxRIGdzvlzV54AtB"}' > .vercel/project.json
           vercel --yes --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+  keep-alive:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Keep repo alive to prevent GitHub from disabling scheduled workflows
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "keep-alive: prevent scheduled workflow from being disabled [skip ci]"
+          git push
