@@ -799,9 +799,22 @@ def main():
     )
     print(f"  Generated: {len(typescript)} chars")
     
-    # Save locally
+    # Save locally (backup)
     with open("/tmp/v11_data.ts", "w") as f:
         f.write(typescript)
+    
+    # CRITICAL: Also write to the local app/data.ts so Vercel build picks up new data
+    local_data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app", "data.ts")
+    # Fallback: if running from repo root, try relative path
+    if not os.path.isdir(os.path.dirname(local_data_path)):
+        local_data_path = os.path.join(os.getcwd(), "app", "data.ts")
+    try:
+        os.makedirs(os.path.dirname(local_data_path), exist_ok=True)
+        with open(local_data_path, "w", encoding="utf-8") as f:
+            f.write(typescript)
+        print(f"  Local write: ✅ ({local_data_path})")
+    except Exception as e:
+        print(f"  Local write: ❌ ({e})")
     
     # Validate — NO INDUSTRY_NEWS check
     checks = ["NEWS_DATE","LAST_UPDATED","REPORT","NEWS_ITEMS","CONTENT_ITEMS","TRENDS","WINE_NEWS","TOURISM_NEWS","MARKET_DATA"]
@@ -812,28 +825,34 @@ def main():
         print("  ABORT: validation failed")
         return
     
-    # Step 6: Push to GitHub
+    # Step 6: Push to GitHub (for persistence across runs)
     print("\n[6] Pushing to GitHub...")
     success, status = push_to_github(typescript, now)
     print(f"  Push: {'✅' if success else '❌'} ({status})")
     
-    # Step 7: Send Telegram notification (always, even if push failed)
-    print("\n[7] Sending Telegram...")
-    tg_ok = send_telegram(news_items, wine_items, tourism_items, insights, now)
-    print(f"  Telegram: {'✅' if tg_ok else '❌'}")
-    
-    if not success:
+    # Step 7: Send Telegram notification ONLY if push succeeded
+    if success:
+        print("\n[7] Sending Telegram...")
+        tg_ok = send_telegram(news_items, wine_items, tourism_items, insights, now)
+        print(f"  Telegram: {'✅' if tg_ok else '❌'}")
+    else:
+        print("\n[7] Skipping Telegram — push failed")
         print("  ABORT: push failed")
         return
     
-    # Step 8: Check site
-    print("\n[8] Checking site...")
-    time.sleep(5)
+    # Step 8: Verify local data.ts matches what we generated
+    print("\n[8] Verifying local data.ts...")
     try:
-        resp = requests.get("https://eldar-hub-web.vercel.app", timeout=15)
-        print(f"  Site: {resp.status_code}")
-    except:
-        print("  Site: timeout")
+        with open(local_data_path, "r", encoding="utf-8") as f:
+            local_content = f.read()
+        if local_content == typescript:
+            print("  Verify: ✅ local data.ts matches generated content")
+        else:
+            print("  Verify: ⚠️ local data.ts differs — overwriting again")
+            with open(local_data_path, "w", encoding="utf-8") as f:
+                f.write(typescript)
+    except Exception as e:
+        print(f"  Verify: ❌ ({e})")
     
     print(f"\n=== DONE! v11 — Real Data ===")
 
