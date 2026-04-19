@@ -513,10 +513,44 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     
     # Report
     report = insights or {}
-    breaking = report.get("breakingItems", [])[:5]
-    if not breaking:
-        breaking = [f"📰 {i['title'][:50]}" for i in news_items[:5]]
-    breaking_ts = ", ".join(f'"{ts(b)}"' for b in breaking)
+    
+    # Breaking items: always derive from actual news items (not GPT)
+    # This ensures the red bar always reflects the CURRENT headlines
+    CATEGORY_EMOJIS = {
+        "כלכלה": "📈",
+        "פוליטיקה": "🏛️",
+        "צבא וביטחון": "⚔️",
+        "ביטחון": "🛡️",
+        "חברה": "👥",
+        "טכנולוגיה": "🤖",
+        "רשת חברתית": "🌐",
+        "אירועים": "📅",
+        "בידור": "🎬",
+        "תיירות": "✈️",
+        "יין": "🍷",
+    }
+    # Collect one headline per category to ensure variety
+    seen_cats = set()
+    breaking = []
+    all_items = news_items + content_items + tourism_items + wine_items
+    for item in all_items:
+        cat = item.get("category", "")
+        if cat not in seen_cats and len(breaking) < 5:
+            emoji = CATEGORY_EMOJIS.get(cat, "📰")
+            title = item.get("title", "")[:60]
+            breaking.append(f"{emoji} {title}")
+            seen_cats.add(cat)
+    # If we still have fewer than 5, fill from remaining items
+    for item in all_items:
+        if len(breaking) >= 5:
+            break
+        title = item.get("title", "")[:60]
+        # Check if this title is already in breaking
+        if not any(title[:30] in b for b in breaking):
+            cat = item.get("category", "")
+            emoji = CATEGORY_EMOJIS.get(cat, "📰")
+            breaking.append(f"{emoji} {title}")
+    breaking_ts = ", ".join(f'"{ts(b)}"' for b in breaking[:5])
     
     exec_summary = report.get("executiveSummary", "")
     if not exec_summary or exec_summary == "עדכון חדשות יומי":
