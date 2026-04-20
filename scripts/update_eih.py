@@ -14,6 +14,7 @@ import os, sys, json, base64, requests, time, re, html as html_mod
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote_plus
+from email.utils import parsedate_to_datetime
 
 try:
     from json_repair import repair_json
@@ -29,26 +30,50 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "479774667")
 
 IST = timezone(timedelta(hours=3))
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+MAX_AGE_DAYS = 2  # Drop articles older than 48 hours to prevent stale news
 
 # ============================================================
 # PART 1: SCRAPING — All data comes from here, NOT from GPT
 # ============================================================
 
 def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
-    """Fetch real headlines from Google News RSS with Google News redirect links."""
+    """Fetch real headlines from Google News RSS with Google News redirect links.
+    
+    FIX: Articles older than MAX_AGE_DAYS are dropped to prevent stale news.
+    The RSS feed is iterated beyond max_items so we can fill up to max_items
+    fresh articles even when early results are stale.
+    """
     items = []
+    now_utc = datetime.now(timezone.utc)
+    cutoff = now_utc - timedelta(days=MAX_AGE_DAYS)
     try:
         url = f"https://news.google.com/rss/search?q={quote_plus(q)}&hl={hl}&gl={gl}&ceid={ceid}"
         resp = requests.get(url, headers=UA, timeout=15)
         root = ET.fromstring(resp.content)
-        for item in root.findall(".//item")[:max_items]:
+        for item in root.findall(".//item"):
+            if len(items) >= max_items:
+                break
             title = item.findtext("title", "").strip()
+            pub_date = item.findtext("pubDate", "")
+            # --- DATE FRESHNESS CHECK ---
+            if pub_date:
+                try:
+                    pub_dt = parsedate_to_datetime(pub_date)
+                    if pub_dt.tzinfo is None:
+                        pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+                    else:
+                        pub_dt = pub_dt.astimezone(timezone.utc)
+                    if pub_dt < cutoff:
+                        print(f"    [SKIP stale {pub_dt.date()}] {title[:50]}")
+                        continue
+                except Exception:
+                    pass  # unparseable date — allow through
+            # ----------------------------
             source_el = item.find("source")
             source_name = source_el.text if source_el is not None else ""
             gnews_link = item.findtext("link", "").strip()
             if not gnews_link:
                 gnews_link = f"https://www.google.com/search?q={quote_plus(title)}"
-            pub_date = item.findtext("pubDate", "")
             desc = re.sub(r'<[^>]+>', '', item.findtext("description", ""))[:200]
             if title:
                 items.append({
@@ -60,7 +85,11 @@ def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
     return items
 
 def fetch_rss(url, max_items=3):
-    """Fetch real articles from RSS feeds with direct URLs."""
+    """Fetch real articles from RSS feeds with direct URLs.
+    
+    FIX: pub_date is now captured so date-based sorting in select_news_items
+    works correctly for RSS items (previously they had no pub_date field).
+    """
     items = []
     try:
         resp = requests.get(url, headers=UA, timeout=15)
@@ -68,9 +97,10 @@ def fetch_rss(url, max_items=3):
         for item in root.findall(".//item")[:max_items]:
             title = item.findtext("title", "").strip()
             link = item.findtext("link", "").strip()
+            pub_date = item.findtext("pubDate", "")  # FIX: capture pub_date
             desc = re.sub(r'<[^>]+>', '', item.findtext("description", ""))[:200]
             if title and link:
-                items.append({"title": title, "link": link, "description": desc})
+                items.append({"title": title, "link": link, "description": desc, "pub_date": pub_date})
     except Exception as e:
         print(f"    RSS error: {e}")
     return items
@@ -163,26 +193,30 @@ def scrape_all():
     # Google News queries — UPDATED sources per user request
     queries = {
         # כלכלה — includes crypto
+        # FIX: replaced broad keyword query with site-scoped query for recency
         "כלכלה": [
-            ("כלכלה ישראל ynet גלובס כלכליסט", "he"),
+            ("site:globes.co.il כלכלה", "he"),
             ("Israel economy GDP inflation", "en"),
             ("crypto bitcoin ethereum market today", "en"),
         ],
-        # פוליטיקה — added Epoch geopolitics
+        # פוליטיקה
+        # FIX: replaced broad keyword query (returned Feb 2026 Modi article) with site-scoped queries
         "פוליטיקה": [
-            ("פוליטיקה ישראל כנסת ממשלה", "he"),
+            ("site:ynet.co.il פוליטיקה", "he"),
             ("site:walla.co.il פוליטיקה", "he"),
             ("site:epoch.org.il גיאו-פוליטיקה OR מדיניות חוץ OR דיפלומטיה", "he"),
         ],
         # ביטחון
+        # FIX: replaced broad keyword query with site-scoped query for recency
         "ביטחון": [
-            ("ביטחון ישראל צהל מבצע", "he"),
             ("site:n12.co.il ביטחון צבא", "he"),
+            ("site:walla.co.il ביטחון", "he"),
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
+        # FIX: replaced broad keyword query with site-scoped query for recency
         "חברה": [
-            ("חברה ישראל חינוך בריאות כנסת", "he"),
+            ("site:ynet.co.il חברה", "he"),
             ("site:epoch.org.il פסיכולוגיה OR מערכות יחסים OR התפתחות אישית", "he"),
             ("site:epoch.org.il פילוסופיה OR חברה OR היסטוריה OR רוחניות", "he"),
         ],
@@ -250,8 +284,23 @@ def scrape_all():
 # PART 2: SELECT BEST ITEMS
 # ============================================================
 
+def _parse_pub_date(item):
+    """Return a UTC datetime for sorting; epoch-0 if unparseable."""
+    try:
+        dt = parsedate_to_datetime(item.get("pub_date", ""))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        return datetime(1970, 1, 1, tzinfo=timezone.utc)
+
 def select_news_items(data, max_per_cat=2, total_max=20):
-    """Select best items from scraped data. Priority: RSS > Google News."""
+    """Select best items from scraped data. Priority: RSS > Google News.
+    
+    FIX: Each group is sorted newest-first before slicing so that even if
+    stale articles slip through (e.g. RSS feeds), the most recent ones are
+    always preferred within each source tier.
+    """
     news_cats = ["כלכלה", "פוליטיקה", "ביטחון", "חברה", "טכנולוגיה", "רשת חברתית", "אירועים", "בידור"]
     items = []
     idx = 1
@@ -261,6 +310,10 @@ def select_news_items(data, max_per_cat=2, total_max=20):
         rss_items = [i for i in cat_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
         gnews_items = [i for i in cat_items if i not in rss_items]
         
+        # FIX: sort each group newest-first before selecting
+        rss_items   = sorted(rss_items,   key=_parse_pub_date, reverse=True)
+        gnews_items = sorted(gnews_items, key=_parse_pub_date, reverse=True)
+        
         # Prioritize Epoch in all relevant categories (enriching content > plain news)
         epoch_cats = ["חברה", "פוליטיקה", "בידור"]
         if cat in epoch_cats:
@@ -268,6 +321,10 @@ def select_news_items(data, max_per_cat=2, total_max=20):
             other_items = [i for i in cat_items if i not in epoch_items]
             other_rss = [i for i in other_items if "news.google.com" not in i.get("link", "") and "google.com/search" not in i.get("link", "")]
             other_gnews = [i for i in other_items if i not in other_rss]
+            # FIX: sort epoch/rss/gnews sub-groups newest-first too
+            epoch_items = sorted(epoch_items, key=_parse_pub_date, reverse=True)
+            other_rss   = sorted(other_rss,   key=_parse_pub_date, reverse=True)
+            other_gnews = sorted(other_gnews, key=_parse_pub_date, reverse=True)
             # Epoch first (1 item), then RSS, then Google News
             selected = (epoch_items[:1] + other_rss + other_gnews)[:max_per_cat]
         else:
