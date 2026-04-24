@@ -620,6 +620,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         "בידור": "משקף את מגמות התרבות והבידור",
         "תיירות": "השפעה על ענף התיירות והמלונאות בישראל",
         "יין": "מגמה שכדאי לעקוב לאוהבי יין ומשקיעים",
+        "פיתוח אישי": "תוכן לפיתוח אישי, מודלים מנטליים וקבלת החלטות חכמה",
     }
     
     for item in news_items + content_items + wine_items + tourism_items:
@@ -654,6 +655,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         "בידור": "🎬",
         "תיירות": "✈️",
         "יין": "🍷",
+        "פיתוח אישי": "🧠",
     }
     # Collect one headline per category to ensure variety
     seen_cats = set()
