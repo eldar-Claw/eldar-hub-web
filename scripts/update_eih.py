@@ -489,6 +489,73 @@ CRITICAL RULES:
         return None
 
 # ============================================================
+# PART 3b: TRANSLATE — English titles/summaries to Hebrew
+# ============================================================
+
+def translate_items_to_hebrew(items):
+    """Translate English title and summary fields to Hebrew using GPT.
+    
+    Called for items whose content is in English (e.g., פיתוח אישי from fs.blog).
+    Sends all items in a single GPT call to minimise API round-trips.
+    """
+    if not items:
+        return items
+    
+    # Build a compact list for the prompt
+    entries = []
+    for i, item in enumerate(items):
+        entries.append(f'{i}: title="{item.get("title","")[:200]}" summary="{item.get("summary","")[:300]}"')
+    entries_str = "\n".join(entries)
+    
+    raw = call_gpt(
+        "You are a professional Hebrew translator. Translate the given English article titles and summaries to natural, fluent Hebrew. Return ONLY a JSON object.",
+        f"""Translate each entry to Hebrew. Return JSON:
+{{"translations": [
+  {{"index": 0, "title": "Hebrew title", "summary": "Hebrew summary"}},
+  ...
+]}}
+
+Entries to translate:
+{entries_str}
+
+Rules:
+- Translate naturally and fluently into Hebrew
+- Keep proper nouns (company names, people names) in their original form or common Hebrew transliteration
+- summary should be a complete Hebrew sentence, not truncated
+- Return ONLY the JSON object, nothing else""",
+        1500
+    )
+    
+    if not raw:
+        print("    Translation: ⚠️ GPT failed, keeping original English")
+        return items
+    
+    try:
+        parsed = json.loads(raw[raw.find('{'):raw.rfind('}')+1])
+    except json.JSONDecodeError:
+        if repair_json:
+            try:
+                parsed = json.loads(repair_json(raw[raw.find('{'):raw.rfind('}')+1]))
+            except Exception:
+                print("    Translation: ⚠️ JSON parse failed, keeping original English")
+                return items
+        else:
+            print("    Translation: ⚠️ JSON parse failed, keeping original English")
+            return items
+    
+    translations = {t["index"]: t for t in parsed.get("translations", [])}
+    for i, item in enumerate(items):
+        if i in translations:
+            t = translations[i]
+            if t.get("title"):
+                item["title"] = t["title"]
+            if t.get("summary"):
+                item["summary"] = t["summary"]
+    
+    print(f"    Translation: ✅ {len(translations)} items translated to Hebrew")
+    return items
+
+# ============================================================
 # PART 4: SANITIZE — Clean Hebrew abbreviations + HTML entities
 # ============================================================
 
@@ -870,6 +937,20 @@ def main():
     
     print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}")
     
+    # Step 3b: Translate פיתוח אישי items (English → Hebrew)
+    print("\n[3b] Translating פיתוח אישי items to Hebrew...")
+    pituch_ishi_items = [i for i in news_items if i.get("category") == "פיתוח אישי"]
+    if pituch_ishi_items:
+        translated = translate_items_to_hebrew(pituch_ishi_items)
+        # Update in-place within news_items
+        id_to_translated = {i["id"]: i for i in translated}
+        for item in news_items:
+            if item["id"] in id_to_translated:
+                item["title"] = id_to_translated[item["id"]]["title"]
+                item["summary"] = id_to_translated[item["id"]]["summary"]
+    else:
+        print("    No פיתוח אישי items found, skipping translation")
+
     # Step 4: GPT for insights ONLY
     print("\n[4] GPT — Insights only...")
     market_headlines = [f"{i['name']}: {i['value']} ({i['change']})" for i in 
