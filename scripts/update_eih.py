@@ -180,6 +180,8 @@ def scrape_all():
         ("כלכלה", "כלכליסט", "https://www.calcalist.co.il/GeneralRSS/0,16335,L-8,00.xml"),
         # חברה
         ("חברה", "ynet", "https://www.ynet.co.il/Integration/StoryRss2.xml"),
+        # פיתוח אישי — Farnam Street (fs.blog): mental models, decision-making, personal growth
+        ("פיתוח אישי", "Farnam Street", "https://fs.blog/feed/"),
     ]
     
     for cat, name, url in rss_feeds:
@@ -301,7 +303,7 @@ def select_news_items(data, max_per_cat=2, total_max=20):
     stale articles slip through (e.g. RSS feeds), the most recent ones are
     always preferred within each source tier.
     """
-    news_cats = ["כלכלה", "פוליטיקה", "ביטחון", "חברה", "טכנולוגיה", "רשת חברתית", "אירועים", "בידור"]
+    news_cats = ["כלכלה", "פוליטיקה", "ביטחון", "חברה", "טכנולוגיה", "רשת חברתית", "אירועים", "בידור", "פיתוח אישי"]
     items = []
     idx = 1
     

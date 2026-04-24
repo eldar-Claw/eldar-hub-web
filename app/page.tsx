@@ -16,6 +16,7 @@ const catColors: Record<string, string> = {
   "בידור": "bg-pink-500",
   "אירועים": "bg-indigo-500",
   "יין": "bg-rose-700",
+  "פיתוח אישי": "bg-orange-500",
 };
 
 const catBgColors: Record<string, string> = {
@@ -29,6 +30,7 @@ const catBgColors: Record<string, string> = {
   "בידור": "border-pink-200 bg-pink-50",
   "אירועים": "border-indigo-200 bg-indigo-50",
   "יין": "border-rose-200 bg-rose-50",
+  "פיתוח אישי": "border-orange-200 bg-orange-50",
 };
 
 function importanceColor(n: number) {
@@ -95,7 +97,7 @@ export default function Home() {
   };
   const isAllSelected = activeFilters.size === 0;
 
-  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור", "יין"];
+  const categories = ["all", "כלכלה", "פוליטיקה", "חברה", "צבא וביטחון", "טכנולוגיה", "תיירות", "רשת חברתית", "אירועים", "בידור", "יין", "פיתוח אישי"];
   const socialItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.sourceName === "LinkedIn" || i.sourceName === "Facebook" || i.sourceName === "X" || i.sourceName === "Twitter");
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
