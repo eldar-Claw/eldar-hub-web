@@ -10,7 +10,7 @@
 - Added: כלכלה — crypto market data
 - Changed: בידור — theater, new movies, Netflix series, cinema, Apple TV
 """
-import os, sys, json, base64, requests, time, re, html as html_mod
+import os, sys, json, base64, requests, time, re, html as html_mod, unicodedata
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote_plus
@@ -249,12 +249,12 @@ def scrape_all():
             ("הצגות תיאטרון תל אביב 2026", "he"),
             ("site:epoch.org.il תרבות OR אמנות OR סרט OR ביקורת", "he"),
         ],
-        # יין
+        # יין — Israeli wine sources: winesisrael.com, grape-man.com, + Hebrew wine news
         "יין": [
-            ("Wine Spectator review 2026", "en"),
-            ("wine market Liv-ex investment Bordeaux", "en"),
-            ("Decanter Bordeaux Burgundy Barolo", "en"),
-            ("DRC Lafite Sassicaia Krug Margaux wine", "en"),
+            ("site:winesisrael.com יין", "he"),
+            ("site:grape-man.com יין OR יקב OR טעימה", "he"),
+            ("יין ישראלי יקב טעימה 2026", "he"),
+            ("יקבים ישראל יין חדש", "he"),
         ],
         # תיירות — exotic destinations, road trips, resorts, unique experiences + PassportNews
         "תיירות": [
@@ -523,7 +523,7 @@ Rules:
 - Keep proper nouns (company names, people names) in their original form or common Hebrew transliteration
 - summary should be a complete Hebrew sentence, not truncated
 - Return ONLY the JSON object, nothing else""",
-        1500
+        3000
     )
     
     if not raw:
@@ -939,19 +939,39 @@ def main():
     
     print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}")
     
-    # Step 3b: Translate פיתוח אישי items (English → Hebrew)
-    print("\n[3b] Translating פיתוח אישי items to Hebrew...")
-    pituch_ishi_items = [i for i in news_items if i.get("category") == "פיתוח אישי"]
-    if pituch_ishi_items:
-        translated = translate_items_to_hebrew(pituch_ishi_items)
-        # Update in-place within news_items
+    # Step 3b: Translate ALL English items to Hebrew (across all categories)
+    # Detect English content by checking if title contains mostly ASCII/Latin chars
+    def _is_english(text):
+        if not text:
+            return False
+        latin_count = sum(1 for c in text if 'LATIN' in unicodedata.name(c, '') or c.isascii())
+        return latin_count > len(text) * 0.5
+    
+    print("\n[3b] Translating English items to Hebrew...")
+    all_item_lists = [
+        ("news_items", news_items),
+        ("content_items", content_items),
+        ("wine_items", wine_items),
+        ("tourism_items", tourism_items),
+    ]
+    english_items = []
+    for list_name, item_list in all_item_lists:
+        for item in item_list:
+            if _is_english(item.get("title", "")):
+                english_items.append(item)
+    
+    if english_items:
+        print(f"    Found {len(english_items)} English items to translate")
+        translated = translate_items_to_hebrew(english_items)
+        # Update in-place — translate_items_to_hebrew modifies the items directly
         id_to_translated = {i["id"]: i for i in translated}
-        for item in news_items:
-            if item["id"] in id_to_translated:
-                item["title"] = id_to_translated[item["id"]]["title"]
-                item["summary"] = id_to_translated[item["id"]]["summary"]
+        for list_name, item_list in all_item_lists:
+            for item in item_list:
+                if item["id"] in id_to_translated:
+                    item["title"] = id_to_translated[item["id"]]["title"]
+                    item["summary"] = id_to_translated[item["id"]]["summary"]
     else:
-        print("    No פיתוח אישי items found, skipping translation")
+        print("    No English items found, skipping translation")
 
     # Step 4: GPT for insights ONLY
     print("\n[4] GPT — Insights only...")
