@@ -31,12 +31,13 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "479774667")
 IST = timezone(timedelta(hours=3))
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 MAX_AGE_DAYS = 2  # Drop articles older than 48 hours to prevent stale news
+MAX_AGE_OVERRIDE = {"יין": 30, "פיתוח אישי": 14}  # Wine/personal-dev publish less frequently
 
 # ============================================================
 # PART 1: SCRAPING — All data comes from here, NOT from GPT
 # ============================================================
 
-def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
+def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3, max_age_days=None):
     """Fetch real headlines from Google News RSS with Google News redirect links.
     
     FIX: Articles older than MAX_AGE_DAYS are dropped to prevent stale news.
@@ -45,7 +46,8 @@ def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3):
     """
     items = []
     now_utc = datetime.now(timezone.utc)
-    cutoff = now_utc - timedelta(days=MAX_AGE_DAYS)
+    age = max_age_days if max_age_days is not None else MAX_AGE_DAYS
+    cutoff = now_utc - timedelta(days=age)
     try:
         url = f"https://news.google.com/rss/search?q={quote_plus(q)}&hl={hl}&gl={gl}&ceid={ceid}"
         resp = requests.get(url, headers=UA, timeout=15)
@@ -270,7 +272,8 @@ def scrape_all():
             print(f"  GNews: {cat} — '{q[:40]}'")
             gl = "IL" if lang == "he" else "US"
             ceid = "IL:he" if lang == "he" else "US:en"
-            items = fetch_google_news(q, lang, gl, ceid, 3)
+            cat_age = MAX_AGE_OVERRIDE.get(cat)
+            items = fetch_google_news(q, lang, gl, ceid, 3, max_age_days=cat_age)
             for i in items:
                 i["category"] = cat
             data.setdefault(cat, []).extend(items)
