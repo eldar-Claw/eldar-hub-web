@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, LAST_UPDATED, MarketIndex } from "./data";
 import type { NewsItem } from "./data";
 
@@ -86,6 +86,25 @@ type Tab = "dashboard" | "sources" | "settings";
 export default function Home() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
+  const [disabledSources, setDisabledSources] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("eih-disabled-sources");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+    return new Set();
+  });
+
+  useEffect(() => {
+    localStorage.setItem("eih-disabled-sources", JSON.stringify([...disabledSources]));
+  }, [disabledSources]);
+
+  const toggleSource = (sourceName: string) => {
+    setDisabledSources(prev => {
+      const next = new Set(prev);
+      if (next.has(sourceName)) { next.delete(sourceName); } else { next.add(sourceName); }
+      return next;
+    });
+  };
 
   const toggleFilter = (cat: string) => {
     setActiveFilters(prev => {
@@ -115,10 +134,17 @@ export default function Home() {
   };
 
   const filteredItems = (() => {
-    if (isAllSelected) return uniqueAll;
-    const combined: NewsItem[] = [];
-    activeFilters.forEach(cat => { combined.push(...getItemsForCategory(cat)); });
-    return combined.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
+    let items: NewsItem[];
+    if (isAllSelected) { items = uniqueAll; } else {
+      const combined: NewsItem[] = [];
+      activeFilters.forEach(cat => { combined.push(...getItemsForCategory(cat)); });
+      items = combined.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
+    }
+    // Apply source toggle filter
+    if (disabledSources.size > 0) {
+      items = items.filter(item => !disabledSources.has(item.sourceName));
+    }
+    return items;
   })();
   const filteredNews = filteredItems;
   const filteredContent: NewsItem[] = [];
@@ -277,55 +303,35 @@ export default function Home() {
 
         {tab === "sources" && (
           <div className="space-y-3">
-            <h2 className="text-lg font-bold text-[#1a365d] mb-4">📡 ניהול מקורות</h2>
-            {[
-              // חדשות ופוליטיקה
-              { name: "Ynet / Knesset", cat: "חדשות", status: "active" },
-              { name: "הארץ / ערוץ 12", cat: "חדשות", status: "active" },
-              { name: "וואלה / N12", cat: "חדשות", status: "active" },
-              { name: "ישראל היום", cat: "חדשות", status: "active" },
-              // כלכלה
-              { name: "גלובס", cat: "כלכלה", status: "active" },
-              { name: "כלכליסט", cat: "כלכלה", status: "active" },
-              // טכנולוגיה — Geektime/LetsAI + Epoch
-              { name: "Geektime", cat: "טכנולוגיה", status: "active" },
-              { name: "LetsAI", cat: "טכנולוגיה", status: "active" },
-              { name: "Epoch Israel — מדע וטכנולוגיה", cat: "טכנולוגיה", status: "active" },
-              // חברה — Epoch psychology
-              { name: "Epoch Israel — פסיכולוגיה", cat: "חברה", status: "active" },
-              // רשת חברתית
-              { name: "LinkedIn", cat: "מקצועי", status: "active" },
-              { name: "Facebook", cat: "רשת חברתית", status: "active" },
-              // בידור
-              { name: "Netflix", cat: "בידור", status: "active" },
-              { name: "Apple TV+", cat: "בידור", status: "active" },
-              { name: "קולנוע ישראל", cat: "בידור", status: "active" },
-              { name: "תיאטרון תל אביב", cat: "בידור", status: "active" },
-              // אירועים
-              { name: "כנסי הייטק ישראל", cat: "אירועים", status: "active" },
-              { name: "Tel Aviv Tech Events", cat: "אירועים", status: "active" },
-              // תיירות
-              { name: "Passport News", cat: "תיירות", status: "active" },
-              { name: "Luxury Resorts & Exotic", cat: "תיירות", status: "active" },
-              // יין
-              { name: "Wine Spectator", cat: "יין", status: "active" },
-              { name: "Decanter", cat: "יין", status: "active" },
-              { name: "Liv-ex", cat: "יין", status: "active" },
-              { name: "Wine Advocate", cat: "יין", status: "active" },
-            ].map((s, i) => (
-              <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${s.status === "active" ? "bg-green-500" : s.status === "error" ? "bg-red-500" : "bg-gray-300"}`} />
-                  <div>
-                    <span className="font-semibold text-sm text-gray-900">{s.name}</span>
-                    <span className="text-[11px] text-gray-400 mr-2">· {s.cat}</span>
+            <h2 className="text-lg font-bold text-[#1a365d] mb-4">ניהול מקורות 📡</h2>
+            <p className="text-[13px] text-gray-500 mb-3">לחץ על מתג כדי להסתיר/להציג כתבות ממקור מסוים. ההגדרות נשמרות במכשיר שלך.</p>
+            {(() => {
+              const allDataItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(TOURISM_NEWS || []), ...(WINE_NEWS || [])];
+              const sourceMap = new Map<string, string>();
+              allDataItems.forEach(item => {
+                if (item.sourceName && !sourceMap.has(item.sourceName)) {
+                  sourceMap.set(item.sourceName, item.category);
+                }
+              });
+              const sources = Array.from(sourceMap.entries()).map(([name, cat]) => ({ name, cat }));
+              return sources.map((s, i) => {
+                const isEnabled = !disabledSources.has(s.name);
+                return (
+                  <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${isEnabled ? "bg-green-500" : "bg-gray-300"}`} />
+                      <div>
+                        <span className={`font-semibold text-sm ${isEnabled ? "text-gray-900" : "text-gray-400 line-through"}`}>{s.name}</span>
+                        <span className="text-[11px] text-gray-400 mr-2">· {s.cat}</span>
+                      </div>
+                    </div>
+                    <div onClick={() => toggleSource(s.name)} className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${isEnabled ? "bg-blue-600" : "bg-gray-300"}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${isEnabled ? "right-0.5" : "left-0.5"}`} />
+                    </div>
                   </div>
-                </div>
-                <div className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${s.status !== "disabled" ? "bg-blue-600" : "bg-gray-300"}`}>
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${s.status !== "disabled" ? "right-0.5" : "left-0.5"}`} />
-                </div>
-              </div>
-            ))}
+                );
+              });
+            })()}
           </div>
         )}
 
