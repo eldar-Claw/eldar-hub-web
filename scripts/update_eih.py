@@ -215,7 +215,7 @@ def scrape_all():
         "ביטחון": [
             ("site:n12.co.il ביטחון צבא", "he"),
             ("site:walla.co.il ביטחון", "he"),
-            ("INSS המכון למחקרי ביטחון", "he", True),  # skip_stale=True; keyword search works from US IPs
+            # INSS is loaded from inss_cache.json (Google News RSS unreliable from US IPs)
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
@@ -281,6 +281,22 @@ def scrape_all():
                 i["category"] = cat
             data.setdefault(cat, []).extend(items)
             time.sleep(0.3)
+    
+    # --- Load INSS cache (pre-fetched from Israeli IP) ---
+    inss_cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inss_cache.json")
+    if os.path.exists(inss_cache_path):
+        try:
+            with open(inss_cache_path, "r", encoding="utf-8") as f:
+                inss_items = json.load(f)
+            for item in inss_items[:3]:
+                item["category"] = "ביטחון"
+                item["source_name"] = "INSS"
+            data.setdefault("ביטחון", []).extend(inss_items[:3])
+            print(f"  INSS cache: loaded {min(3, len(inss_items))} articles")
+        except Exception as e:
+            print(f"  INSS cache error: {e}")
+    else:
+        print(f"  INSS cache not found at {inss_cache_path}")
     
     total = sum(len(v) for v in data.values())
     print(f"\n  Total scraped: {total} items, {len(data)} categories")
