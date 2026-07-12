@@ -215,7 +215,7 @@ def scrape_all():
         "ביטחון": [
             ("site:n12.co.il ביטחון צבא", "he"),
             ("site:walla.co.il ביטחון", "he"),
-            ("site:inss.org.il", "he"),
+            ("site:inss.org.il when:30d", "he"),
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
