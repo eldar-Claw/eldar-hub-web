@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, MARKET_DATA, LAST_UPDATED, MarketIndex } from "./data";
+import { REPORT, NEWS_ITEMS, CONTENT_ITEMS, TRENDS, TOURISM_NEWS, WINE_NEWS, INSS_NEWS, MARKET_DATA, LAST_UPDATED, MarketIndex } from "./data";
 import type { NewsItem } from "./data";
 
 // Category colors
@@ -121,7 +121,7 @@ export default function Home() {
   const entertainmentItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "בידור" || i.sourceName === "Netflix" || i.sourceName === "Apple TV+");
   const eventsItems = [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === "אירועים");
   const wineItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(WINE_NEWS || [])].filter(i => i.category === "יין");
-  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems, ...wineItems];
+  const allItems = [...NEWS_ITEMS, ...(TOURISM_NEWS || []), ...(INSS_NEWS || []), ...socialItems, ...entertainmentItems, ...eventsItems, ...wineItems];
   const uniqueAll = allItems.filter((item, idx, self) => self.findIndex(i => i.id === item.id) === idx);
 
   const getItemsForCategory = (cat: string): NewsItem[] => {
@@ -130,6 +130,7 @@ export default function Home() {
     if (cat === "אירועים") return eventsItems;
     if (cat === "בידור") return entertainmentItems;
     if (cat === "יין") return wineItems;
+    if (cat === "צבא וביטחון") return [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(INSS_NEWS || [])].filter(i => i.category === cat);
     return [...NEWS_ITEMS, ...CONTENT_ITEMS].filter(i => i.category === cat);
   };
 
@@ -306,7 +307,7 @@ export default function Home() {
             <h2 className="text-lg font-bold text-[#1a365d] mb-4">ניהול מקורות 📡</h2>
             <p className="text-[13px] text-gray-500 mb-3">לחץ על מתג כדי להסתיר/להציג כתבות ממקור מסוים. ההגדרות נשמרות במכשיר שלך.</p>
             {(() => {
-              const allDataItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(TOURISM_NEWS || []), ...(WINE_NEWS || [])];
+              const allDataItems = [...NEWS_ITEMS, ...CONTENT_ITEMS, ...(TOURISM_NEWS || []), ...(WINE_NEWS || []), ...(INSS_NEWS || [])];
               const sourceMap = new Map<string, string>();
               allDataItems.forEach(item => {
                 if (item.sourceName && !sourceMap.has(item.sourceName)) {
