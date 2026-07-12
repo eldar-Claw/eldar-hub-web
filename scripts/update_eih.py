@@ -954,7 +954,7 @@ def main():
     
     # Step 3: Select best items (no GPT)
     print("\n[3] Selecting items...")
-    news_items = select_news_items(scraped, max_per_cat=2, total_max=17)
+    news_items = select_news_items(scraped, max_per_cat=3, total_max=20)
     content_items = select_content_items(scraped, max_items=5)
     wine_items = select_wine_items(scraped, max_items=5)
     tourism_items = select_tourism_items(scraped, max_items=5)
