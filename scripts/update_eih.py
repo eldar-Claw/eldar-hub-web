@@ -215,7 +215,7 @@ def scrape_all():
         "ביטחון": [
             ("site:n12.co.il ביטחון צבא", "he"),
             ("site:walla.co.il ביטחון", "he"),
-            ("site:inss.org.il", "he", True),  # skip_stale=True because Google News gives wrong dates for INSS
+            ("inss.org.il", "he", True),  # skip_stale=True because Google News gives wrong dates for INSS
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
