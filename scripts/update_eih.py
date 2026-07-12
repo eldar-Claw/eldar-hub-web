@@ -37,7 +37,7 @@ MAX_AGE_OVERRIDE = {"יין": 30, "פיתוח אישי": 14, "ביטחון": 30}
 # PART 1: SCRAPING — All data comes from here, NOT from GPT
 # ============================================================
 
-def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3, max_age_days=None):
+def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3, max_age_days=None, skip_stale=False):
     """Fetch real headlines from Google News RSS with Google News redirect links.
     
     FIX: Articles older than MAX_AGE_DAYS are dropped to prevent stale news.
@@ -58,7 +58,7 @@ def fetch_google_news(q, hl="he", gl="IL", ceid="IL:he", max_items=3, max_age_da
             title = item.findtext("title", "").strip()
             pub_date = item.findtext("pubDate", "")
             # --- DATE FRESHNESS CHECK ---
-            if pub_date:
+            if pub_date and not skip_stale:
                 try:
                     pub_dt = parsedate_to_datetime(pub_date)
                     if pub_dt.tzinfo is None:
@@ -215,7 +215,7 @@ def scrape_all():
         "ביטחון": [
             ("site:n12.co.il ביטחון צבא", "he"),
             ("site:walla.co.il ביטחון", "he"),
-            ("site:inss.org.il when:30d", "he"),
+            ("site:inss.org.il", "he", True),  # skip_stale=True because Google News gives wrong dates for INSS
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
@@ -269,12 +269,14 @@ def scrape_all():
     }
     
     for cat, qs in queries.items():
-        for q, lang in qs:
-            print(f"  GNews: {cat} — '{q[:40]}'")
+        for entry in qs:
+            q, lang = entry[0], entry[1]
+            skip_stale = entry[2] if len(entry) > 2 else False
+            print(f"  GNews: {cat} \u2014 '{q[:40]}'")
             gl = "IL" if lang == "he" else "US"
             ceid = "IL:he" if lang == "he" else "US:en"
             cat_age = MAX_AGE_OVERRIDE.get(cat)
-            items = fetch_google_news(q, lang, gl, ceid, 3, max_age_days=cat_age)
+            items = fetch_google_news(q, lang, gl, ceid, 3, max_age_days=cat_age, skip_stale=skip_stale)
             for i in items:
                 i["category"] = cat
             data.setdefault(cat, []).extend(items)
