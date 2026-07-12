@@ -749,6 +749,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     content_ts = ",\n".join(item_ts(i) for i in content_items)
     wine_ts_str = ",\n".join(item_ts(i) for i in wine_items)
     tourism_ts_str = ",\n".join(item_ts(i) for i in tourism_items)
+    inss_ts_str = ",\n".join(item_ts(i) for i in inss_items)
     
     # Trends — with strong fallback
     trends = report.get("trends", [])
@@ -865,6 +866,10 @@ export const WINE_NEWS: NewsItem[] = [
 
 export const TOURISM_NEWS: NewsItem[] = [
 {tourism_ts_str}
+];
+
+export const INSS_NEWS: NewsItem[] = [
+{inss_ts_str}
 ];
 
 export const MARKET_DATA: MarketData = {{
