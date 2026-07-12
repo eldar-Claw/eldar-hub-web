@@ -428,6 +428,25 @@ def select_content_items(data, max_items=5):
             idx += 1
     return items[:max_items]
 
+def select_inss_items(data, max_items=2):
+    """Select INSS (Institute for National Security Studies) items separately.
+    These are guaranteed to appear regardless of date competition with other ביטחון items."""
+    items = []
+    bitachon_items = data.get("ביטחון", [])
+    inss_items = [i for i in bitachon_items if i.get("source_name") == "INSS"]
+    for item in inss_items[:max_items]:
+        items.append({
+            "id": 400 + len(items) + 1,
+            "type": "news",
+            "category": "צבא וביטחון",
+            "title": item.get("title", ""),
+            "summary": item.get("description", item.get("title", "")),
+            "sourceUrl": item.get("link", "#"),
+            "sourceName": "INSS",
+            "importance": 7,
+        })
+    return items
+
 # ============================================================
 # PART 3: GPT — ONLY for analysis/insights, NOT for data
 # ============================================================
@@ -617,7 +636,9 @@ def ts(s):
 # ============================================================
 
 def build_typescript(news_items, content_items, wine_items, tourism_items, 
-                     market_data, insights, now):
+                     market_data, insights, now, inss_items=None):
+    if inss_items is None:
+        inss_items = []
     date_str = now.strftime("%H:%M %d.%m.%Y")
     news_date = now.strftime("%d.%m.%Y")
     
@@ -645,7 +666,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
         "פיתוח אישי": "תוכן לפיתוח אישי, מודלים מנטליים וקבלת החלטות חכמה",
     }
     
-    for item in news_items + content_items + wine_items + tourism_items:
+    for item in news_items + content_items + wine_items + tourism_items + inss_items:
         item_id = item.get("id", 0)
         ins = insight_map.get(item_id, {})
         cat = item.get("category", "")
@@ -682,7 +703,7 @@ def build_typescript(news_items, content_items, wine_items, tourism_items,
     # Collect one headline per category to ensure variety
     seen_cats = set()
     breaking = []
-    all_items = news_items + content_items + tourism_items + wine_items
+    all_items = news_items + content_items + tourism_items + wine_items + inss_items
     for item in all_items:
         cat = item.get("category", "")
         if cat not in seen_cats and len(breaking) < 5:
@@ -958,8 +979,9 @@ def main():
     content_items = select_content_items(scraped, max_items=5)
     wine_items = select_wine_items(scraped, max_items=5)
     tourism_items = select_tourism_items(scraped, max_items=5)
+    inss_items = select_inss_items(scraped, max_items=2)
     
-    print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}")
+    print(f"  News: {len(news_items)}, Content: {len(content_items)}, Wine: {len(wine_items)}, Tourism: {len(tourism_items)}, INSS: {len(inss_items)}")
     
     # Step 3b: Translate ALL English items to Hebrew (across all categories)
     # Detect English content by checking if title contains mostly ASCII/Latin chars
@@ -975,6 +997,7 @@ def main():
         ("content_items", content_items),
         ("wine_items", wine_items),
         ("tourism_items", tourism_items),
+        ("inss_items", inss_items),
     ]
     english_items = []
     for list_name, item_list in all_item_lists:
@@ -1013,7 +1036,7 @@ def main():
     print("\n[5] Building TypeScript...")
     typescript = build_typescript(
         news_items, content_items, wine_items, tourism_items,
-        market_data, insights, now
+        market_data, insights, now, inss_items=inss_items
     )
     print(f"  Generated: {len(typescript)} chars")
     
