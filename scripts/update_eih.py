@@ -31,7 +31,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "479774667")
 IST = timezone(timedelta(hours=3))
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 MAX_AGE_DAYS = 2  # Drop articles older than 48 hours to prevent stale news
-MAX_AGE_OVERRIDE = {"יין": 30, "פיתוח אישי": 14, "ביטחון": 10}  # Wine/personal-dev/security publish less frequently
+MAX_AGE_OVERRIDE = {"יין": 30, "פיתוח אישי": 14, "ביטחון": 30}  # Wine/personal-dev/security publish less frequently
 
 # ============================================================
 # PART 1: SCRAPING — All data comes from here, NOT from GPT
@@ -215,7 +215,7 @@ def scrape_all():
         "ביטחון": [
             ("site:n12.co.il ביטחון צבא", "he"),
             ("site:walla.co.il ביטחון", "he"),
-            ("site:inss.org.il ביטחון OR אסטרטגיה OR מלחמה", "he"),
+            ("site:inss.org.il", "he"),
             ("Israel defense IDF", "en"),
         ],
         # חברה — Epoch psychology + philosophy + body-mind-spirit
@@ -1058,5 +1058,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
